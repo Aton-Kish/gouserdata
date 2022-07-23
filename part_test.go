@@ -41,7 +41,7 @@ func TestNewPart(t *testing.T) {
 		{
 			name: "positive case: ascii",
 			args: args{
-				mediaType: XShellscript,
+				mediaType: MediaTypeXShellscript,
 				body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 			},
 			expected: &Part{
@@ -59,7 +59,7 @@ func TestNewPart(t *testing.T) {
 		{
 			name: "positive case: utf-8",
 			args: args{
-				mediaType: XShellscript,
+				mediaType: MediaTypeXShellscript,
 				body:      []byte("#!/bin/bash\n" + "echo 'こんにちは世界'"),
 			},
 			expected: &Part{
@@ -96,7 +96,7 @@ func TestPart_Render(t *testing.T) {
 	}{
 		{
 			name: "positive case: ascii",
-			part: *NewPart(XShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'")),
+			part: *NewPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'")),
 			expected: "Content-Transfer-Encoding: 7bit\r\n" +
 				"Content-Type: text/x-shellscript; charset=us-ascii\r\n" +
 				"\r\n" +
@@ -105,7 +105,7 @@ func TestPart_Render(t *testing.T) {
 		},
 		{
 			name: "positive case: utf-8",
-			part: *NewPart(XShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'")),
+			part: *NewPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'")),
 			expected: "Content-Transfer-Encoding: base64\r\n" +
 				"Content-Type: text/x-shellscript; charset=utf-8\r\n" +
 				"\r\n" +

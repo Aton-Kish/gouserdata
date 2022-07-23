@@ -23,16 +23,16 @@ package userdata
 type MediaType string
 
 const (
-	CloudBoothook           MediaType = "text/cloud-boothook"
-	CloudConfig             MediaType = "text/cloud-config"
-	CloudConfigArchive      MediaType = "text/cloud-config-archive"
-	CloudConfigJsonp        MediaType = "text/cloud-config-jsonp"
-	Jinja2                  MediaType = "text/jinja2"
-	PartHandler             MediaType = "text/part-handler"
-	XIncludeOnceUrl         MediaType = "text/x-include-once-url"
-	XIncludeUrl             MediaType = "text/x-include-url"
-	XShellscript            MediaType = "text/x-shellscript"
-	XShellscriptPerBoot     MediaType = "text/x-shellscript-per-boot"
-	XShellscriptPerInstance MediaType = "text/x-shellscript-per-instance"
-	XShellscriptPerOnce     MediaType = "text/x-shellscript-per-once"
+	MediaTypeCloudBoothook           MediaType = "text/cloud-boothook"
+	MediaTypeCloudConfig             MediaType = "text/cloud-config"
+	MediaTypeCloudConfigArchive      MediaType = "text/cloud-config-archive"
+	MediaTypeCloudConfigJsonp        MediaType = "text/cloud-config-jsonp"
+	MediaTypeJinja2                  MediaType = "text/jinja2"
+	MediaTypePartHandler             MediaType = "text/part-handler"
+	MediaTypeXIncludeOnceUrl         MediaType = "text/x-include-once-url"
+	MediaTypeXIncludeUrl             MediaType = "text/x-include-url"
+	MediaTypeXShellscript            MediaType = "text/x-shellscript"
+	MediaTypeXShellscriptPerBoot     MediaType = "text/x-shellscript-per-boot"
+	MediaTypeXShellscriptPerInstance MediaType = "text/x-shellscript-per-instance"
+	MediaTypeXShellscriptPerOnce     MediaType = "text/x-shellscript-per-once"
 )
