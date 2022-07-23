@@ -29,7 +29,7 @@ import (
 
 func TestNewPart(t *testing.T) {
 	type args struct {
-		mediaType string
+		mediaType MediaType
 		body      []byte
 	}
 
@@ -41,7 +41,7 @@ func TestNewPart(t *testing.T) {
 		{
 			name: "positive case: ascii",
 			args: args{
-				mediaType: "text/x-shellscript",
+				mediaType: XShellscript,
 				body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 			},
 			expected: &Part{
@@ -59,7 +59,7 @@ func TestNewPart(t *testing.T) {
 		{
 			name: "positive case: utf-8",
 			args: args{
-				mediaType: "text/x-shellscript",
+				mediaType: XShellscript,
 				body:      []byte("#!/bin/bash\n" + "echo 'こんにちは世界'"),
 			},
 			expected: &Part{
@@ -93,7 +93,7 @@ func TestPart_Render(t *testing.T) {
 	}{
 		{
 			name: "positive case: ascii",
-			part: *NewPart("text/x-shellscript", []byte("#!/bin/bash\n"+"echo 'Hello World'")),
+			part: *NewPart(XShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'")),
 			expected: []byte(
 				"Content-Transfer-Encoding: 7bit\r\n" +
 					"Content-Type: text/x-shellscript; charset=us-ascii\r\n" +
@@ -104,7 +104,7 @@ func TestPart_Render(t *testing.T) {
 		},
 		{
 			name: "positive case: utf-8",
-			part: *NewPart("text/x-shellscript", []byte("#!/bin/bash\n"+"echo 'こんにちは世界'")),
+			part: *NewPart(XShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'")),
 			expected: []byte(
 				"Content-Transfer-Encoding: base64\r\n" +
 					"Content-Type: text/x-shellscript; charset=utf-8\r\n" +

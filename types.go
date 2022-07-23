@@ -20,61 +20,19 @@
 
 package userdata
 
-import (
-	"bytes"
-	"encoding/base64"
-	"mime"
+type MediaType string
 
-	"golang.org/x/exp/utf8string"
+const (
+	CloudBoothook           MediaType = "text/cloud-boothook"
+	CloudConfig             MediaType = "text/cloud-config"
+	CloudConfigArchive      MediaType = "text/cloud-config-archive"
+	CloudConfigJsonp        MediaType = "text/cloud-config-jsonp"
+	Jinja2                  MediaType = "text/jinja2"
+	PartHandler             MediaType = "text/part-handler"
+	XIncludeOnceUrl         MediaType = "text/x-include-once-url"
+	XIncludeUrl             MediaType = "text/x-include-url"
+	XShellscript            MediaType = "text/x-shellscript"
+	XShellscriptPerBoot     MediaType = "text/x-shellscript-per-boot"
+	XShellscriptPerInstance MediaType = "text/x-shellscript-per-instance"
+	XShellscriptPerOnce     MediaType = "text/x-shellscript-per-once"
 )
-
-type Part struct {
-	Header Header
-	Body   []byte
-}
-
-func NewPart(mediaType MediaType, body []byte) *Part {
-	charset := "us-ascii"
-	enc := "7bit"
-
-	if !utf8string.NewString(string(body)).IsASCII() {
-		charset = "utf-8"
-		enc = "base64"
-		body = []byte(base64.StdEncoding.EncodeToString(body))
-	}
-
-	typ := mime.FormatMediaType(string(mediaType), map[string]string{"charset": charset})
-
-	h := NewHeader()
-	h.Set("Content-Transfer-Encoding", enc)
-	h.Set("Content-Type", typ)
-
-	return &Part{Header: *h, Body: body}
-}
-
-func (p *Part) Render() ([]byte, error) {
-	buf := new(bytes.Buffer)
-
-	h, err := p.Header.Render()
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := buf.Write(h); err != nil {
-		return nil, err
-	}
-
-	if _, err := buf.WriteString("\r\n"); err != nil {
-		return nil, err
-	}
-
-	if _, err := buf.Write(p.Body); err != nil {
-		return nil, err
-	}
-
-	if _, err := buf.WriteString("\r\n"); err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}

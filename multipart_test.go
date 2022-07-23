@@ -115,7 +115,7 @@ func TestNewMultipartWithBoundary(t *testing.T) {
 
 func TestMultipart_AddPart(t *testing.T) {
 	type args struct {
-		mediaType string
+		mediaType MediaType
 		body      []byte
 	}
 
@@ -130,11 +130,11 @@ func TestMultipart_AddPart(t *testing.T) {
 			multipart: *NewMultipart(),
 			args: []args{
 				{
-					mediaType: "text/cloud-config",
+					mediaType: CloudConfig,
 					body:      []byte("#cloud-config\n" + "timezone: America/Virgin"),
 				},
 				{
-					mediaType: "text/x-shellscript",
+					mediaType: XShellscript,
 					body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 				},
 			},
@@ -179,11 +179,11 @@ func TestMultipart_AddPart(t *testing.T) {
 			multipart: *NewMultipart(),
 			args: []args{
 				{
-					mediaType: "text/cloud-config",
+					mediaType: CloudConfig,
 					body:      []byte("#cloud-config\n" + "timezone: Asia/Tokyo"),
 				},
 				{
-					mediaType: "text/x-shellscript",
+					mediaType: XShellscript,
 					body:      []byte("#!/bin/bash\n" + "echo 'こんにちは世界'"),
 				},
 			},
@@ -247,8 +247,8 @@ func TestMultipart_Render(t *testing.T) {
 			multipart: func() Multipart {
 				d := NewMultipart()
 
-				d.AddPart("text/cloud-config", []byte("#cloud-config\n"+"timezone: America/Virgin"))
-				d.AddPart("text/x-shellscript", []byte("#!/bin/bash\n"+"echo 'Hello World'"))
+				d.AddPart(CloudConfig, []byte("#cloud-config\n"+"timezone: America/Virgin"))
+				d.AddPart(XShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
 
 				return *d
 			}(),
@@ -278,8 +278,8 @@ func TestMultipart_Render(t *testing.T) {
 			multipart: func() Multipart {
 				d := NewMultipart()
 
-				d.AddPart("text/cloud-config", []byte("#cloud-config\n"+"timezone: Asia/Tokyo"))
-				d.AddPart("text/x-shellscript", []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
+				d.AddPart(CloudConfig, []byte("#cloud-config\n"+"timezone: Asia/Tokyo"))
+				d.AddPart(XShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
 
 				return *d
 			}(),

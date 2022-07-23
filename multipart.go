@@ -53,7 +53,7 @@ func NewMultipartWithBoundary(boundary string) *Multipart {
 	return &Multipart{Header: *h, Parts: p, boundary: boundary}
 }
 
-func (m *Multipart) AddPart(mediaType string, body []byte) {
+func (m *Multipart) AddPart(mediaType MediaType, body []byte) {
 	part := NewPart(mediaType, body)
 	m.Parts = append(m.Parts, *part)
 }
