@@ -21,6 +21,7 @@
 package userdata
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,7 +31,7 @@ func TestHeader_Render(t *testing.T) {
 	tests := []struct {
 		name     string
 		header   Header
-		expected []byte
+		expected string
 		err      error
 	}{
 		{
@@ -49,14 +50,12 @@ func TestHeader_Render(t *testing.T) {
 
 				return *h
 			}(),
-			expected: []byte(
-				"Key1: Key1-Value1\r\n" +
-					"Key2: Key2-Value1\r\n" +
-					"Key2: Key2-Value2\r\n" +
-					"Key3: Key3-Value1\r\n" +
-					"Key3: Key3-Value2\r\n" +
-					"Key3: Key3-Value3\r\n",
-			),
+			expected: "Key1: Key1-Value1\r\n" +
+				"Key2: Key2-Value1\r\n" +
+				"Key2: Key2-Value2\r\n" +
+				"Key3: Key3-Value1\r\n" +
+				"Key3: Key3-Value2\r\n" +
+				"Key3: Key3-Value3\r\n",
 		},
 		{
 			name: "positive case: sort keys",
@@ -74,24 +73,23 @@ func TestHeader_Render(t *testing.T) {
 
 				return *h
 			}(),
-			expected: []byte(
-				"Key1: Key1-Value1\r\n" +
-					"Key2: Key2-Value1\r\n" +
-					"Key2: Key2-Value2\r\n" +
-					"Key3: Key3-Value1\r\n" +
-					"Key3: Key3-Value2\r\n" +
-					"Key3: Key3-Value3\r\n",
-			),
+			expected: "Key1: Key1-Value1\r\n" +
+				"Key2: Key2-Value1\r\n" +
+				"Key2: Key2-Value2\r\n" +
+				"Key3: Key3-Value1\r\n" +
+				"Key3: Key3-Value2\r\n" +
+				"Key3: Key3-Value3\r\n",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := tt.header.Render()
+			buf := new(bytes.Buffer)
+			err := tt.header.Render(buf)
 
 			if tt.err == nil {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, actual)
+				assert.Equal(t, tt.expected, buf.String())
 			} else {
 				assert.Error(t, err)
 				assert.Equal(t, tt.err, err)

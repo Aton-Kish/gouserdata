@@ -21,8 +21,8 @@
 package userdata
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 	"net/textproto"
 	"sort"
 
@@ -38,9 +38,7 @@ func NewHeader() *Header {
 	return &Header{h}
 }
 
-func (h *Header) Render() ([]byte, error) {
-	buf := new(bytes.Buffer)
-
+func (h *Header) Render(w io.Writer) error {
 	keys := maps.Keys(h.MIMEHeader)
 	sort.Strings(keys)
 
@@ -49,11 +47,11 @@ func (h *Header) Render() ([]byte, error) {
 		sort.Strings(values)
 
 		for _, v := range values {
-			if _, err := buf.WriteString(fmt.Sprintf("%s: %s\r\n", k, v)); err != nil {
-				return nil, err
+			if _, err := fmt.Fprintf(w, "%s: %s\r\n", k, v); err != nil {
+				return err
 			}
 		}
 	}
 
-	return buf.Bytes(), nil
+	return nil
 }

@@ -21,8 +21,8 @@
 package userdata
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 	"mime"
 )
 
@@ -58,44 +58,32 @@ func (m *Multipart) AddPart(mediaType MediaType, body []byte) {
 	m.Parts = append(m.Parts, *part)
 }
 
-func (m *Multipart) Render() ([]byte, error) {
-	buf := new(bytes.Buffer)
-
-	h, err := m.Header.Render()
-	if err != nil {
-		return nil, err
+func (m *Multipart) Render(w io.Writer) error {
+	if err := m.Header.Render(w); err != nil {
+		return err
 	}
 
-	if _, err := buf.Write(h); err != nil {
-		return nil, err
-	}
-
-	if _, err := buf.WriteString("\r\n"); err != nil {
-		return nil, err
+	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
+		return err
 	}
 
 	for _, part := range m.Parts {
-		if _, err := buf.WriteString(fmt.Sprintf("--%s\r\n", m.boundary)); err != nil {
-			return nil, err
+		if _, err := fmt.Fprintf(w, "--%s\r\n", m.boundary); err != nil {
+			return err
 		}
 
-		p, err := part.Render()
-		if err != nil {
-			return nil, err
+		if err := part.Render(w); err != nil {
+			return err
 		}
 
-		if _, err := buf.Write(p); err != nil {
-			return nil, err
-		}
-
-		if _, err := buf.WriteString("\r\n"); err != nil {
-			return nil, err
+		if _, err := fmt.Fprint(w, "\r\n"); err != nil {
+			return err
 		}
 	}
 
-	if _, err := buf.WriteString(fmt.Sprintf("--%s--\r\n", m.boundary)); err != nil {
-		return nil, err
+	if _, err := fmt.Fprintf(w, "--%s--\r\n", m.boundary); err != nil {
+		return err
 	}
 
-	return buf.Bytes(), nil
+	return nil
 }

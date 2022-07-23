@@ -21,7 +21,7 @@
 package userdata
 
 import (
-	"encoding/base64"
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -217,7 +217,10 @@ func TestMultipart_AddPart(t *testing.T) {
 
 							return *h
 						}(),
-						Body: []byte(base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'"))),
+						Body: []byte(
+							// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
+							"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
+						),
 					},
 				},
 				boundary: "+Go+User+Data+Boundary==",
@@ -239,7 +242,7 @@ func TestMultipart_Render(t *testing.T) {
 	tests := []struct {
 		name      string
 		multipart Multipart
-		expected  []byte
+		expected  string
 		err       error
 	}{
 		{
@@ -252,26 +255,24 @@ func TestMultipart_Render(t *testing.T) {
 
 				return *d
 			}(),
-			expected: []byte(
-				"Content-Type: multipart/mixed; boundary=\"+Go+User+Data+Boundary==\"\r\n" +
-					"Mime-Version: 1.0\r\n" +
-					"\r\n" +
-					"--+Go+User+Data+Boundary==\r\n" +
-					"Content-Transfer-Encoding: 7bit\r\n" +
-					"Content-Type: text/cloud-config; charset=us-ascii\r\n" +
-					"\r\n" +
-					"#cloud-config\n" + "timezone: America/Virgin" +
-					"\r\n" +
-					"\r\n" +
-					"--+Go+User+Data+Boundary==\r\n" +
-					"Content-Transfer-Encoding: 7bit\r\n" +
-					"Content-Type: text/x-shellscript; charset=us-ascii\r\n" +
-					"\r\n" +
-					"#!/bin/bash\n" + "echo 'Hello World'" +
-					"\r\n" +
-					"\r\n" +
-					"--+Go+User+Data+Boundary==--\r\n",
-			),
+			expected: "Content-Type: multipart/mixed; boundary=\"+Go+User+Data+Boundary==\"\r\n" +
+				"Mime-Version: 1.0\r\n" +
+				"\r\n" +
+				"--+Go+User+Data+Boundary==\r\n" +
+				"Content-Transfer-Encoding: 7bit\r\n" +
+				"Content-Type: text/cloud-config; charset=us-ascii\r\n" +
+				"\r\n" +
+				"#cloud-config\n" +
+				"timezone: America/Virgin\r\n" +
+				"\r\n" +
+				"--+Go+User+Data+Boundary==\r\n" +
+				"Content-Transfer-Encoding: 7bit\r\n" +
+				"Content-Type: text/x-shellscript; charset=us-ascii\r\n" +
+				"\r\n" +
+				"#!/bin/bash\n" +
+				"echo 'Hello World'\r\n" +
+				"\r\n" +
+				"--+Go+User+Data+Boundary==--\r\n",
 		},
 		{
 			name: "positive case: include utf-8",
@@ -283,36 +284,35 @@ func TestMultipart_Render(t *testing.T) {
 
 				return *d
 			}(),
-			expected: []byte(
-				"Content-Type: multipart/mixed; boundary=\"+Go+User+Data+Boundary==\"\r\n" +
-					"Mime-Version: 1.0\r\n" +
-					"\r\n" +
-					"--+Go+User+Data+Boundary==\r\n" +
-					"Content-Transfer-Encoding: 7bit\r\n" +
-					"Content-Type: text/cloud-config; charset=us-ascii\r\n" +
-					"\r\n" +
-					"#cloud-config\n" + "timezone: Asia/Tokyo" +
-					"\r\n" +
-					"\r\n" +
-					"--+Go+User+Data+Boundary==\r\n" +
-					"Content-Transfer-Encoding: base64\r\n" +
-					"Content-Type: text/x-shellscript; charset=utf-8\r\n" +
-					"\r\n" +
-					base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n"+"echo 'こんにちは世界'")) +
-					"\r\n" +
-					"\r\n" +
-					"--+Go+User+Data+Boundary==--\r\n",
-			),
+			expected: "Content-Type: multipart/mixed; boundary=\"+Go+User+Data+Boundary==\"\r\n" +
+				"Mime-Version: 1.0\r\n" +
+				"\r\n" +
+				"--+Go+User+Data+Boundary==\r\n" +
+				"Content-Transfer-Encoding: 7bit\r\n" +
+				"Content-Type: text/cloud-config; charset=us-ascii\r\n" +
+				"\r\n" +
+				"#cloud-config\n" +
+				"timezone: Asia/Tokyo\r\n" +
+				"\r\n" +
+				"--+Go+User+Data+Boundary==\r\n" +
+				"Content-Transfer-Encoding: base64\r\n" +
+				"Content-Type: text/x-shellscript; charset=utf-8\r\n" +
+				"\r\n" +
+				// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n"+"echo 'こんにちは世界'")) +
+				"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==\r\n" +
+				"\r\n" +
+				"--+Go+User+Data+Boundary==--\r\n",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := tt.multipart.Render()
+			buf := new(bytes.Buffer)
+			err := tt.multipart.Render(buf)
 
 			if tt.err == nil {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, actual)
+				assert.Equal(t, tt.expected, buf.String())
 			} else {
 				assert.Error(t, err)
 				assert.Equal(t, tt.err, err)

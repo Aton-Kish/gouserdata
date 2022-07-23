@@ -21,7 +21,7 @@
 package userdata
 
 import (
-	"encoding/base64"
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -71,7 +71,10 @@ func TestNewPart(t *testing.T) {
 
 					return *h
 				}(),
-				Body: []byte(base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'"))),
+				Body: []byte(
+					// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
+					"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
+				),
 			},
 		},
 	}
@@ -88,40 +91,37 @@ func TestPart_Render(t *testing.T) {
 	tests := []struct {
 		name     string
 		part     Part
-		expected []byte
+		expected string
 		err      error
 	}{
 		{
 			name: "positive case: ascii",
 			part: *NewPart(XShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'")),
-			expected: []byte(
-				"Content-Transfer-Encoding: 7bit\r\n" +
-					"Content-Type: text/x-shellscript; charset=us-ascii\r\n" +
-					"\r\n" +
-					"#!/bin/bash\n" + "echo 'Hello World'" +
-					"\r\n",
-			),
+			expected: "Content-Transfer-Encoding: 7bit\r\n" +
+				"Content-Type: text/x-shellscript; charset=us-ascii\r\n" +
+				"\r\n" +
+				"#!/bin/bash\n" +
+				"echo 'Hello World'\r\n",
 		},
 		{
 			name: "positive case: utf-8",
 			part: *NewPart(XShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'")),
-			expected: []byte(
-				"Content-Transfer-Encoding: base64\r\n" +
-					"Content-Type: text/x-shellscript; charset=utf-8\r\n" +
-					"\r\n" +
-					base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n"+"echo 'こんにちは世界'")) +
-					"\r\n",
-			),
+			expected: "Content-Transfer-Encoding: base64\r\n" +
+				"Content-Type: text/x-shellscript; charset=utf-8\r\n" +
+				"\r\n" +
+				// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n"+"echo 'こんにちは世界'")) +
+				"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==\r\n",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := tt.part.Render()
+			buf := new(bytes.Buffer)
+			err := tt.part.Render(buf)
 
 			if tt.err == nil {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, actual)
+				assert.Equal(t, tt.expected, buf.String())
 			} else {
 				assert.Error(t, err)
 				assert.Equal(t, tt.err, err)

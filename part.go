@@ -21,8 +21,9 @@
 package userdata
 
 import (
-	"bytes"
 	"encoding/base64"
+	"fmt"
+	"io"
 	"mime"
 
 	"golang.org/x/exp/utf8string"
@@ -52,29 +53,22 @@ func NewPart(mediaType MediaType, body []byte) *Part {
 	return &Part{Header: *h, Body: body}
 }
 
-func (p *Part) Render() ([]byte, error) {
-	buf := new(bytes.Buffer)
-
-	h, err := p.Header.Render()
-	if err != nil {
-		return nil, err
+func (p *Part) Render(w io.Writer) error {
+	if err := p.Header.Render(w); err != nil {
+		return err
 	}
 
-	if _, err := buf.Write(h); err != nil {
-		return nil, err
+	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
+		return err
 	}
 
-	if _, err := buf.WriteString("\r\n"); err != nil {
-		return nil, err
+	if _, err := w.Write(p.Body); err != nil {
+		return err
 	}
 
-	if _, err := buf.Write(p.Body); err != nil {
-		return nil, err
+	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
+		return err
 	}
 
-	if _, err := buf.WriteString("\r\n"); err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+	return nil
 }
