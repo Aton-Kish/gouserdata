@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package multipart
+package userdata
 
 import (
 	"encoding/base64"
@@ -27,14 +27,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewUserData(t *testing.T) {
+func TestNewMultipart(t *testing.T) {
 	tests := []struct {
 		name     string
-		expected *UserData
+		expected *Multipart
 	}{
 		{
 			name: "positive case",
-			expected: &UserData{
+			expected: &Multipart{
 				Header: func() Header {
 					h := NewHeader()
 
@@ -51,13 +51,13 @@ func TestNewUserData(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := NewUserData()
+			actual := NewMultipart()
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
 }
 
-func TestNewUserDataWithBoundary(t *testing.T) {
+func TestNewMultipartWithBoundary(t *testing.T) {
 	type args struct {
 		boundary string
 	}
@@ -65,14 +65,14 @@ func TestNewUserDataWithBoundary(t *testing.T) {
 	tests := []struct {
 		name     string
 		args     args
-		expected *UserData
+		expected *Multipart
 	}{
 		{
 			name: "positive case: quoted",
 			args: args{
 				boundary: "+Go+User+Data+Boundary==",
 			},
-			expected: &UserData{
+			expected: &Multipart{
 				Header: func() Header {
 					h := NewHeader()
 
@@ -90,7 +90,7 @@ func TestNewUserDataWithBoundary(t *testing.T) {
 			args: args{
 				boundary: "+Go+User+Data+Boundary++",
 			},
-			expected: &UserData{
+			expected: &Multipart{
 				Header: func() Header {
 					h := NewHeader()
 
@@ -107,27 +107,27 @@ func TestNewUserDataWithBoundary(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := NewUserDataWithBoundary(tt.args.boundary)
+			actual := NewMultipartWithBoundary(tt.args.boundary)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
 }
 
-func TestUserData_AddPart(t *testing.T) {
+func TestMultipart_AddPart(t *testing.T) {
 	type args struct {
 		mediaType string
 		body      []byte
 	}
 
 	tests := []struct {
-		name     string
-		userData UserData
-		args     []args
-		expected UserData
+		name      string
+		multipart Multipart
+		args      []args
+		expected  Multipart
 	}{
 		{
-			name:     "positive case: ascii only",
-			userData: *NewUserData(),
+			name:      "positive case: ascii only",
+			multipart: *NewMultipart(),
 			args: []args{
 				{
 					mediaType: "text/cloud-config",
@@ -138,7 +138,7 @@ func TestUserData_AddPart(t *testing.T) {
 					body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 				},
 			},
-			expected: UserData{
+			expected: Multipart{
 				Header: func() Header {
 					h := NewHeader()
 
@@ -175,8 +175,8 @@ func TestUserData_AddPart(t *testing.T) {
 			},
 		},
 		{
-			name:     "positive case: include utf-8",
-			userData: *NewUserData(),
+			name:      "positive case: include utf-8",
+			multipart: *NewMultipart(),
 			args: []args{
 				{
 					mediaType: "text/cloud-config",
@@ -187,7 +187,7 @@ func TestUserData_AddPart(t *testing.T) {
 					body:      []byte("#!/bin/bash\n" + "echo 'こんにちは世界'"),
 				},
 			},
-			expected: UserData{
+			expected: Multipart{
 				Header: func() Header {
 					h := NewHeader()
 
@@ -228,24 +228,24 @@ func TestUserData_AddPart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for _, args := range tt.args {
-				tt.userData.AddPart(args.mediaType, args.body)
+				tt.multipart.AddPart(args.mediaType, args.body)
 			}
-			assert.Equal(t, tt.expected, tt.userData)
+			assert.Equal(t, tt.expected, tt.multipart)
 		})
 	}
 }
 
-func TestUserData_Render(t *testing.T) {
+func TestMultipart_Render(t *testing.T) {
 	tests := []struct {
-		name     string
-		userData UserData
-		expected []byte
-		err      error
+		name      string
+		multipart Multipart
+		expected  []byte
+		err       error
 	}{
 		{
 			name: "positive case: ascii only",
-			userData: func() UserData {
-				d := NewUserData()
+			multipart: func() Multipart {
+				d := NewMultipart()
 
 				d.AddPart("text/cloud-config", []byte("#cloud-config\n"+"timezone: America/Virgin"))
 				d.AddPart("text/x-shellscript", []byte("#!/bin/bash\n"+"echo 'Hello World'"))
@@ -275,8 +275,8 @@ func TestUserData_Render(t *testing.T) {
 		},
 		{
 			name: "positive case: include utf-8",
-			userData: func() UserData {
-				d := NewUserData()
+			multipart: func() Multipart {
+				d := NewMultipart()
 
 				d.AddPart("text/cloud-config", []byte("#cloud-config\n"+"timezone: Asia/Tokyo"))
 				d.AddPart("text/x-shellscript", []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
@@ -308,7 +308,7 @@ func TestUserData_Render(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := tt.userData.Render()
+			actual, err := tt.multipart.Render()
 
 			if tt.err == nil {
 				assert.NoError(t, err)

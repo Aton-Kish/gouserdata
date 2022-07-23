@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package multipart
+package userdata
 
 import (
 	"bytes"
@@ -31,17 +31,17 @@ const (
 	defaultMIMEVersion = "1.0"
 )
 
-type UserData struct {
+type Multipart struct {
 	Header   Header
 	Parts    []Part
 	boundary string
 }
 
-func NewUserData() *UserData {
-	return NewUserDataWithBoundary(defaultBoundary)
+func NewMultipart() *Multipart {
+	return NewMultipartWithBoundary(defaultBoundary)
 }
 
-func NewUserDataWithBoundary(boundary string) *UserData {
+func NewMultipartWithBoundary(boundary string) *Multipart {
 	typ := mime.FormatMediaType("multipart/mixed", map[string]string{"boundary": boundary})
 
 	h := NewHeader()
@@ -50,18 +50,18 @@ func NewUserDataWithBoundary(boundary string) *UserData {
 
 	p := make([]Part, 0)
 
-	return &UserData{Header: *h, Parts: p, boundary: boundary}
+	return &Multipart{Header: *h, Parts: p, boundary: boundary}
 }
 
-func (d *UserData) AddPart(mediaType string, body []byte) {
+func (m *Multipart) AddPart(mediaType string, body []byte) {
 	part := NewPart(mediaType, body)
-	d.Parts = append(d.Parts, *part)
+	m.Parts = append(m.Parts, *part)
 }
 
-func (d *UserData) Render() ([]byte, error) {
+func (m *Multipart) Render() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
-	h, err := d.Header.Render()
+	h, err := m.Header.Render()
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +74,8 @@ func (d *UserData) Render() ([]byte, error) {
 		return nil, err
 	}
 
-	for _, part := range d.Parts {
-		if _, err := buf.WriteString(fmt.Sprintf("--%s\r\n", d.boundary)); err != nil {
+	for _, part := range m.Parts {
+		if _, err := buf.WriteString(fmt.Sprintf("--%s\r\n", m.boundary)); err != nil {
 			return nil, err
 		}
 
@@ -93,7 +93,7 @@ func (d *UserData) Render() ([]byte, error) {
 		}
 	}
 
-	if _, err := buf.WriteString(fmt.Sprintf("--%s--\r\n", d.boundary)); err != nil {
+	if _, err := buf.WriteString(fmt.Sprintf("--%s--\r\n", m.boundary)); err != nil {
 		return nil, err
 	}
 
