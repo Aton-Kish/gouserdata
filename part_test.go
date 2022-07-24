@@ -22,6 +22,7 @@ package userdata
 
 import (
 	"bytes"
+	"net/textproto"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,14 +48,12 @@ func TestPart_Set(t *testing.T) {
 				body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 			},
 			expected: Part{
-				Header: func() Header {
-					h := NewHeader()
-
-					h.Set("Content-Transfer-Encoding", "7bit")
-					h.Set("Content-Type", "text/x-shellscript; charset=us-ascii")
-
-					return *h
-				}(),
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Transfer-Encoding": {"7bit"},
+						"Content-Type":              {"text/x-shellscript; charset=us-ascii"},
+					},
+				},
 				Body: []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 			},
 		},
@@ -66,14 +65,12 @@ func TestPart_Set(t *testing.T) {
 				body:      []byte("#!/bin/bash\n" + "echo 'こんにちは世界'"),
 			},
 			expected: Part{
-				Header: func() Header {
-					h := NewHeader()
-
-					h.Set("Content-Transfer-Encoding", "base64")
-					h.Set("Content-Type", "text/x-shellscript; charset=utf-8")
-
-					return *h
-				}(),
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Transfer-Encoding": {"base64"},
+						"Content-Type":              {"text/x-shellscript; charset=utf-8"},
+					},
+				},
 				Body: []byte(
 					// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
 					"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
@@ -101,7 +98,9 @@ func TestPart_Render(t *testing.T) {
 			name: "positive case: ascii",
 			part: func() Part {
 				p := NewPart()
+
 				p.Set(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
+
 				return *p
 			}(),
 			expected: "Content-Transfer-Encoding: 7bit\r\n" +
@@ -114,7 +113,9 @@ func TestPart_Render(t *testing.T) {
 			name: "positive case: utf-8",
 			part: func() Part {
 				p := NewPart()
+
 				p.Set(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
+
 				return *p
 			}(),
 			expected: "Content-Transfer-Encoding: base64\r\n" +

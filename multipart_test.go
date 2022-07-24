@@ -22,6 +22,7 @@ package userdata
 
 import (
 	"bytes"
+	"net/textproto"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,14 +36,12 @@ func TestNewMultipart(t *testing.T) {
 		{
 			name: "positive case",
 			expected: &Multipart{
-				Header: func() Header {
-					h := NewHeader()
-
-					h.Set("Content-Type", `multipart/mixed; boundary="+Go+User+Data+Boundary=="`)
-					h.Set("Mime-Version", "1.0")
-
-					return *h
-				}(),
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
 				Parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
@@ -75,14 +74,12 @@ func TestMultipart_SetBoundary(t *testing.T) {
 				boundary: "+Go+User+Data+Boundary==",
 			},
 			expected: Multipart{
-				Header: func() Header {
-					h := NewHeader()
-
-					h.Set("Content-Type", "multipart/mixed; boundary=\"+Go+User+Data+Boundary==\"")
-					h.Set("Mime-Version", "1.0")
-
-					return *h
-				}(),
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
 				Parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
@@ -94,14 +91,12 @@ func TestMultipart_SetBoundary(t *testing.T) {
 				boundary: "+Go+User+Data+Boundary++",
 			},
 			expected: Multipart{
-				Header: func() Header {
-					h := NewHeader()
-
-					h.Set("Content-Type", "multipart/mixed; boundary=+Go+User+Data+Boundary++")
-					h.Set("Mime-Version", "1.0")
-
-					return *h
-				}(),
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=+Go+User+Data+Boundary++"},
+						"Mime-Version": {"1.0"},
+					},
+				},
 				Parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary++",
 			},
@@ -142,35 +137,29 @@ func TestMultipart_AddPart(t *testing.T) {
 				},
 			},
 			expected: Multipart{
-				Header: func() Header {
-					h := NewHeader()
-
-					h.Set("Content-Type", "multipart/mixed; boundary=\"+Go+User+Data+Boundary==\"")
-					h.Set("Mime-Version", "1.0")
-
-					return *h
-				}(),
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
 				Parts: []Part{
 					{
-						Header: func() Header {
-							h := NewHeader()
-
-							h.Set("Content-Transfer-Encoding", "7bit")
-							h.Set("Content-Type", "text/cloud-config; charset=us-ascii")
-
-							return *h
-						}(),
+						Header: Header{
+							textproto.MIMEHeader{
+								"Content-Transfer-Encoding": {"7bit"},
+								"Content-Type":              {"text/cloud-config; charset=us-ascii"},
+							},
+						},
 						Body: []byte("#cloud-config\n" + "timezone: America/Virgin"),
 					},
 					{
-						Header: func() Header {
-							h := NewHeader()
-
-							h.Set("Content-Transfer-Encoding", "7bit")
-							h.Set("Content-Type", "text/x-shellscript; charset=us-ascii")
-
-							return *h
-						}(),
+						Header: Header{
+							textproto.MIMEHeader{
+								"Content-Transfer-Encoding": {"7bit"},
+								"Content-Type":              {"text/x-shellscript; charset=us-ascii"},
+							},
+						},
 						Body: []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 					},
 				},
@@ -191,35 +180,29 @@ func TestMultipart_AddPart(t *testing.T) {
 				},
 			},
 			expected: Multipart{
-				Header: func() Header {
-					h := NewHeader()
-
-					h.Set("Content-Type", "multipart/mixed; boundary=\"+Go+User+Data+Boundary==\"")
-					h.Set("Mime-Version", "1.0")
-
-					return *h
-				}(),
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
 				Parts: []Part{
 					{
-						Header: func() Header {
-							h := NewHeader()
-
-							h.Set("Content-Transfer-Encoding", "7bit")
-							h.Set("Content-Type", "text/cloud-config; charset=us-ascii")
-
-							return *h
-						}(),
+						Header: Header{
+							textproto.MIMEHeader{
+								"Content-Transfer-Encoding": {"7bit"},
+								"Content-Type":              {"text/cloud-config; charset=us-ascii"},
+							},
+						},
 						Body: []byte("#cloud-config\n" + "timezone: Asia/Tokyo"),
 					},
 					{
-						Header: func() Header {
-							h := NewHeader()
-
-							h.Set("Content-Transfer-Encoding", "base64")
-							h.Set("Content-Type", "text/x-shellscript; charset=utf-8")
-
-							return *h
-						}(),
+						Header: Header{
+							textproto.MIMEHeader{
+								"Content-Transfer-Encoding": {"base64"},
+								"Content-Type":              {"text/x-shellscript; charset=utf-8"},
+							},
+						},
 						Body: []byte(
 							// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
 							"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
