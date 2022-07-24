@@ -38,23 +38,27 @@ type Multipart struct {
 }
 
 func NewMultipart() *Multipart {
-	return NewMultipartWithBoundary(defaultBoundary)
-}
-
-func NewMultipartWithBoundary(boundary string) *Multipart {
-	typ := mime.FormatMediaType("multipart/mixed", map[string]string{"boundary": boundary})
-
 	h := NewHeader()
-	h.Set("Content-Type", typ)
 	h.Set("Mime-Version", defaultMIMEVersion)
 
 	p := make([]Part, 0)
 
-	return &Multipart{Header: *h, Parts: p, boundary: boundary}
+	m := &Multipart{Header: *h, Parts: p}
+	m.SetBoundary(defaultBoundary)
+
+	return m
+}
+
+func (m *Multipart) SetBoundary(boundary string) {
+	m.boundary = boundary
+
+	typ := mime.FormatMediaType("multipart/mixed", map[string]string{"boundary": boundary})
+	m.Header.Set("Content-Type", typ)
 }
 
 func (m *Multipart) AddPart(mediaType MediaType, body []byte) {
-	part := NewPart(mediaType, body)
+	part := NewPart()
+	part.Set(mediaType, body)
 	m.Parts = append(m.Parts, *part)
 }
 

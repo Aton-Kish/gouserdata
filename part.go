@@ -34,7 +34,12 @@ type Part struct {
 	Body   []byte
 }
 
-func NewPart(mediaType MediaType, body []byte) *Part {
+func NewPart() *Part {
+	h := NewHeader()
+	return &Part{Header: *h}
+}
+
+func (p *Part) Set(mediaType MediaType, body []byte) {
 	charset := "us-ascii"
 	enc := "7bit"
 
@@ -46,11 +51,10 @@ func NewPart(mediaType MediaType, body []byte) *Part {
 
 	typ := mime.FormatMediaType(string(mediaType), map[string]string{"charset": charset})
 
-	h := NewHeader()
-	h.Set("Content-Transfer-Encoding", enc)
-	h.Set("Content-Type", typ)
+	p.Header.Set("Content-Transfer-Encoding", enc)
+	p.Header.Set("Content-Type", typ)
 
-	return &Part{Header: *h, Body: body}
+	p.Body = body
 }
 
 func (p *Part) Render(w io.Writer) error {

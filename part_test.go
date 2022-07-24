@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewPart(t *testing.T) {
+func TestPart_Set(t *testing.T) {
 	type args struct {
 		mediaType MediaType
 		body      []byte
@@ -35,16 +35,18 @@ func TestNewPart(t *testing.T) {
 
 	tests := []struct {
 		name     string
+		part     Part
 		args     args
-		expected *Part
+		expected Part
 	}{
 		{
 			name: "positive case: ascii",
+			part: *NewPart(),
 			args: args{
 				mediaType: MediaTypeXShellscript,
 				body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 			},
-			expected: &Part{
+			expected: Part{
 				Header: func() Header {
 					h := NewHeader()
 
@@ -58,11 +60,12 @@ func TestNewPart(t *testing.T) {
 		},
 		{
 			name: "positive case: utf-8",
+			part: *NewPart(),
 			args: args{
 				mediaType: MediaTypeXShellscript,
 				body:      []byte("#!/bin/bash\n" + "echo 'こんにちは世界'"),
 			},
-			expected: &Part{
+			expected: Part{
 				Header: func() Header {
 					h := NewHeader()
 
@@ -81,8 +84,8 @@ func TestNewPart(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := NewPart(tt.args.mediaType, tt.args.body)
-			assert.Equal(t, tt.expected, actual)
+			tt.part.Set(tt.args.mediaType, tt.args.body)
+			assert.Equal(t, tt.expected, tt.part)
 		})
 	}
 }
@@ -96,7 +99,11 @@ func TestPart_Render(t *testing.T) {
 	}{
 		{
 			name: "positive case: ascii",
-			part: *NewPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'")),
+			part: func() Part {
+				p := NewPart()
+				p.Set(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
+				return *p
+			}(),
 			expected: "Content-Transfer-Encoding: 7bit\r\n" +
 				"Content-Type: text/x-shellscript; charset=us-ascii\r\n" +
 				"\r\n" +
@@ -105,7 +112,11 @@ func TestPart_Render(t *testing.T) {
 		},
 		{
 			name: "positive case: utf-8",
-			part: *NewPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'")),
+			part: func() Part {
+				p := NewPart()
+				p.Set(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
+				return *p
+			}(),
 			expected: "Content-Transfer-Encoding: base64\r\n" +
 				"Content-Type: text/x-shellscript; charset=utf-8\r\n" +
 				"\r\n" +
