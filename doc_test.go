@@ -43,25 +43,6 @@ echo 'Hello World'`)
 	d.Render(buf)
 
 	fmt.Println(buf.String())
-
-	// Content-Type: multipart/mixed; boundary="+Go+User+Data+Boundary=="
-	// Mime-Version: 1.0
-	//
-	// --+Go+User+Data+Boundary==
-	// Content-Transfer-Encoding: 7bit
-	// Content-Type: text/cloud-config; charset=us-ascii
-	//
-	// #cloud-config
-	// timezone: Europe/London
-	//
-	// --+Go+User+Data+Boundary==
-	// Content-Transfer-Encoding: 7bit
-	// Content-Type: text/x-shellscript; charset=us-ascii
-	//
-	// #!/bin/bash
-	// echo 'Hello World'
-	//
-	// --+Go+User+Data+Boundary==--
 }
 
 func ExampleMultipart_Render_includesUtf8() {
@@ -79,24 +60,6 @@ echo 'こんにちは世界'`)
 	d.Render(buf)
 
 	fmt.Println(buf.String())
-
-	// Content-Type: multipart/mixed; boundary="+Go+User+Data+Boundary=="
-	// Mime-Version: 1.0
-	//
-	// --+Go+User+Data+Boundary==
-	// Content-Transfer-Encoding: 7bit
-	// Content-Type: text/cloud-config; charset=us-ascii
-	//
-	// #cloud-config
-	// timezone: Asia/Tokyo
-	//
-	// --+Go+User+Data+Boundary==
-	// Content-Transfer-Encoding: base64
-	// Content-Type: text/x-shellscript; charset=utf-8
-	//
-	// IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==
-	//
-	// --+Go+User+Data+Boundary==--
 }
 
 func ExampleMultipart_SetBoundary() {
@@ -112,16 +75,4 @@ echo 'Hello World'`)
 	d.Render(buf)
 
 	fmt.Println(strings.ReplaceAll(buf.String(), "\r\n", "\n"))
-
-	// Content-Type: multipart/mixed; boundary=+Custom+User+Data+Boundary+
-	// Mime-Version: 1.0
-	//
-	// --+Custom+User+Data+Boundary+
-	// Content-Transfer-Encoding: 7bit
-	// Content-Type: text/x-shellscript; charset=us-ascii
-	//
-	// #!/bin/bash
-	// echo 'Hello World'
-	//
-	// --+Custom+User+Data+Boundary+--
 }
