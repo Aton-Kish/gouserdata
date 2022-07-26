@@ -125,33 +125,3 @@ echo 'Hello World'`)
 	//
 	// --+Custom+User+Data+Boundary+--
 }
-
-// func Example_boundary() {
-// 	d := userdata.NewMultipart()
-
-// 	d.SetBoundary("+Custom+User+Data+Boundary+")
-
-// 	// scr, err := os.ReadFile("script.sh")
-// 	scr := []byte(`#!/bin/bash
-// echo 'Hello World'`)
-// 	d.AddPart(userdata.MediaTypeXShellscript, scr)
-
-// 	buf := new(bytes.Buffer)
-// 	d.Render(buf)
-
-// 	// fmt.Println(buf.String())
-// 	fmt.Println(strings.ReplaceAll(buf.String(), "\r\n", "\n"))
-
-// 	// Output:
-// 	// Content-Type: multipart/mixed; boundary=+Custom+User+Data+Boundary+
-// 	// Mime-Version: 1.0
-// 	//
-// 	// --+Custom+User+Data+Boundary+
-// 	// Content-Transfer-Encoding: 7bit
-// 	// Content-Type: text/x-shellscript; charset=us-ascii
-// 	//
-// 	// #!/bin/bash
-// 	// echo 'Hello World'
-// 	//
-// 	// --+Custom+User+Data+Boundary+--
-// }
