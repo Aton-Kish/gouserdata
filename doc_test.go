@@ -32,7 +32,7 @@ func ExampleMultipart_Render() {
 	d := userdata.NewMultipart()
 
 	cfg := []byte(`#cloud-config
-timezone: America/Virgin`)
+timezone: Europe/London`)
 	d.AddPart(userdata.MediaTypeCloudConfig, cfg)
 
 	scr := []byte(`#!/bin/bash
@@ -52,7 +52,7 @@ echo 'Hello World'`)
 	// Content-Type: text/cloud-config; charset=us-ascii
 	//
 	// #cloud-config
-	// timezone: America/Virgin
+	// timezone: Europe/London
 	//
 	// --+Go+User+Data+Boundary==
 	// Content-Transfer-Encoding: 7bit

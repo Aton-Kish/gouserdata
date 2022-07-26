@@ -129,7 +129,7 @@ func TestMultipart_AddPart(t *testing.T) {
 			args: []args{
 				{
 					mediaType: MediaTypeCloudConfig,
-					body:      []byte("#cloud-config\n" + "timezone: America/Virgin"),
+					body:      []byte("#cloud-config\n" + "timezone: Europe/London"),
 				},
 				{
 					mediaType: MediaTypeXShellscript,
@@ -151,7 +151,7 @@ func TestMultipart_AddPart(t *testing.T) {
 								"Content-Type":              {"text/cloud-config; charset=us-ascii"},
 							},
 						},
-						Body: []byte("#cloud-config\n" + "timezone: America/Virgin"),
+						Body: []byte("#cloud-config\n" + "timezone: Europe/London"),
 					},
 					{
 						Header: Header{
@@ -236,7 +236,7 @@ func TestMultipart_Render(t *testing.T) {
 			multipart: func() Multipart {
 				d := NewMultipart()
 
-				d.AddPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: America/Virgin"))
+				d.AddPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Europe/London"))
 				d.AddPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
 
 				return *d
@@ -249,7 +249,7 @@ func TestMultipart_Render(t *testing.T) {
 				"Content-Type: text/cloud-config; charset=us-ascii\r\n" +
 				"\r\n" +
 				"#cloud-config\n" +
-				"timezone: America/Virgin\r\n" +
+				"timezone: Europe/London\r\n" +
 				"\r\n" +
 				"--+Go+User+Data+Boundary==\r\n" +
 				"Content-Transfer-Encoding: 7bit\r\n" +
