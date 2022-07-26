@@ -7,7 +7,7 @@ The library for cloud-init User Data
 Use `go get` to install the library
 
 ```shell
-get github.com/Aton-Kish/gouserdata
+go get github.com/Aton-Kish/gouserdata
 ```
 
 Import in your application
