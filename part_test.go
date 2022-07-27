@@ -28,7 +28,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPart_Set(t *testing.T) {
+func TestPart_SetBody(t *testing.T) {
 	type args struct {
 		mediaType MediaType
 		body      []byte
@@ -81,7 +81,7 @@ func TestPart_Set(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.part.Set(tt.args.mediaType, tt.args.body)
+			tt.part.SetBody(tt.args.mediaType, tt.args.body)
 			assert.Equal(t, tt.expected, tt.part)
 		})
 	}
@@ -99,7 +99,7 @@ func TestPart_Render(t *testing.T) {
 			part: func() Part {
 				p := NewPart()
 
-				p.Set(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
+				p.SetBody(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
 
 				return *p
 			}(),
@@ -114,7 +114,7 @@ func TestPart_Render(t *testing.T) {
 			part: func() Part {
 				p := NewPart()
 
-				p.Set(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
+				p.SetBody(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
 
 				return *p
 			}(),

@@ -58,7 +58,7 @@ func (m *Multipart) SetBoundary(boundary string) {
 
 func (m *Multipart) AddPart(mediaType MediaType, body []byte) {
 	part := NewPart()
-	part.Set(mediaType, body)
+	part.SetBody(mediaType, body)
 	m.Parts = append(m.Parts, *part)
 }
 
