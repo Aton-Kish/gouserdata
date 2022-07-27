@@ -40,6 +40,10 @@ func NewPart() *Part {
 	return &Part{Header: *h}
 }
 
+func (p *Part) MediaType() MediaType {
+	return p.mediaType
+}
+
 func (p *Part) SetBody(mediaType MediaType, body []byte) {
 	charset := "us-ascii"
 	enc := "7bit"

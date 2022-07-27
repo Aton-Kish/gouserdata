@@ -28,6 +28,87 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestPart_MediaType(t *testing.T) {
+	tests := []struct {
+		name     string
+		part     Part
+		expected MediaType
+	}{
+		{
+			name:     "positive case: empty",
+			part:     Part{},
+			expected: MediaType(""),
+		},
+		{
+			name:     "positive case: text/cloud-boothook",
+			part:     Part{mediaType: MediaTypeCloudBoothook},
+			expected: MediaTypeCloudBoothook,
+		},
+		{
+			name:     "positive case: text/cloud-config",
+			part:     Part{mediaType: MediaTypeCloudConfig},
+			expected: MediaTypeCloudConfig,
+		},
+		{
+			name:     "positive case: text/cloud-config-archive",
+			part:     Part{mediaType: MediaTypeCloudConfigArchive},
+			expected: MediaTypeCloudConfigArchive,
+		},
+		{
+			name:     "positive case: text/cloud-config-jsonp",
+			part:     Part{mediaType: MediaTypeCloudConfigJsonp},
+			expected: MediaTypeCloudConfigJsonp,
+		},
+		{
+			name:     "positive case: text/jinja2",
+			part:     Part{mediaType: MediaTypeJinja2},
+			expected: MediaTypeJinja2,
+		},
+		{
+			name:     "positive case: text/part-handler",
+			part:     Part{mediaType: MediaTypePartHandler},
+			expected: MediaTypePartHandler,
+		},
+		{
+			name:     "positive case: text/x-include-once-url",
+			part:     Part{mediaType: MediaTypeXIncludeOnceUrl},
+			expected: MediaTypeXIncludeOnceUrl,
+		},
+		{
+			name:     "positive case: text/x-include-url",
+			part:     Part{mediaType: MediaTypeXIncludeUrl},
+			expected: MediaTypeXIncludeUrl,
+		},
+		{
+			name:     "positive case: text/x-shellscript",
+			part:     Part{mediaType: MediaTypeXShellscript},
+			expected: MediaTypeXShellscript,
+		},
+		{
+			name:     "positive case: text/x-shellscript-per-boot",
+			part:     Part{mediaType: MediaTypeXShellscriptPerBoot},
+			expected: MediaTypeXShellscriptPerBoot,
+		},
+		{
+			name:     "positive case: text/x-shellscript-per-instance",
+			part:     Part{mediaType: MediaTypeXShellscriptPerInstance},
+			expected: MediaTypeXShellscriptPerInstance,
+		},
+		{
+			name:     "positive case: text/x-shellscript-per-once",
+			part:     Part{mediaType: MediaTypeXShellscriptPerOnce},
+			expected: MediaTypeXShellscriptPerOnce,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := tt.part.MediaType()
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
 func TestPart_SetBody(t *testing.T) {
 	type args struct {
 		mediaType MediaType
