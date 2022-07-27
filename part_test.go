@@ -35,68 +35,144 @@ func TestPart_MediaType(t *testing.T) {
 		expected MediaType
 	}{
 		{
-			name:     "positive case: empty",
-			part:     Part{},
+			name: "positive case: empty",
+			part: func() Part {
+				p := NewPart()
+
+				return *p
+			}(),
 			expected: MediaType(""),
 		},
 		{
-			name:     "positive case: text/cloud-boothook",
-			part:     Part{mediaType: MediaTypeCloudBoothook},
+			name: "positive case: text/cloud-boothook",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeCloudBoothook, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeCloudBoothook,
 		},
 		{
-			name:     "positive case: text/cloud-config",
-			part:     Part{mediaType: MediaTypeCloudConfig},
+			name: "positive case: text/cloud-config",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeCloudConfig, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeCloudConfig,
 		},
 		{
-			name:     "positive case: text/cloud-config-archive",
-			part:     Part{mediaType: MediaTypeCloudConfigArchive},
+			name: "positive case: text/cloud-config-archive",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeCloudConfigArchive, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeCloudConfigArchive,
 		},
 		{
-			name:     "positive case: text/cloud-config-jsonp",
-			part:     Part{mediaType: MediaTypeCloudConfigJsonp},
+			name: "positive case: text/cloud-config-jsonp",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeCloudConfigJsonp, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeCloudConfigJsonp,
 		},
 		{
-			name:     "positive case: text/jinja2",
-			part:     Part{mediaType: MediaTypeJinja2},
+			name: "positive case: text/jinja2",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeJinja2, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeJinja2,
 		},
 		{
-			name:     "positive case: text/part-handler",
-			part:     Part{mediaType: MediaTypePartHandler},
+			name: "positive case: text/part-handler",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypePartHandler, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypePartHandler,
 		},
 		{
-			name:     "positive case: text/x-include-once-url",
-			part:     Part{mediaType: MediaTypeXIncludeOnceUrl},
+			name: "positive case: text/x-include-once-url",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXIncludeOnceUrl, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeXIncludeOnceUrl,
 		},
 		{
-			name:     "positive case: text/x-include-url",
-			part:     Part{mediaType: MediaTypeXIncludeUrl},
+			name: "positive case: text/x-include-url",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXIncludeUrl, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeXIncludeUrl,
 		},
 		{
-			name:     "positive case: text/x-shellscript",
-			part:     Part{mediaType: MediaTypeXShellscript},
+			name: "positive case: text/x-shellscript",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXShellscript, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeXShellscript,
 		},
 		{
-			name:     "positive case: text/x-shellscript-per-boot",
-			part:     Part{mediaType: MediaTypeXShellscriptPerBoot},
+			name: "positive case: text/x-shellscript-per-boot",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXShellscriptPerBoot, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeXShellscriptPerBoot,
 		},
 		{
-			name:     "positive case: text/x-shellscript-per-instance",
-			part:     Part{mediaType: MediaTypeXShellscriptPerInstance},
+			name: "positive case: text/x-shellscript-per-instance",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXShellscriptPerInstance, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeXShellscriptPerInstance,
 		},
 		{
-			name:     "positive case: text/x-shellscript-per-once",
-			part:     Part{mediaType: MediaTypeXShellscriptPerOnce},
+			name: "positive case: text/x-shellscript-per-once",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXShellscriptPerOnce, []byte{})
+
+				return *p
+			}(),
 			expected: MediaTypeXShellscriptPerOnce,
 		},
 	}
