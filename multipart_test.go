@@ -56,6 +56,42 @@ func TestNewMultipart(t *testing.T) {
 	}
 }
 
+func TestMultipart_Boundary(t *testing.T) {
+	tests := []struct {
+		name      string
+		multipart Multipart
+		expected  string
+	}{
+		{
+			name: "positive case: default",
+			multipart: func() Multipart {
+				m := NewMultipart()
+
+				return *m
+			}(),
+			expected: "+Go+User+Data+Boundary==",
+		},
+		{
+			name: "positive case: +Custom+User+Data+Boundary+",
+			multipart: func() Multipart {
+				m := NewMultipart()
+
+				m.SetBoundary("+Custom+User+Data+Boundary+")
+
+				return *m
+			}(),
+			expected: "+Custom+User+Data+Boundary+",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := tt.multipart.Boundary()
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
 func TestMultipart_SetBoundary(t *testing.T) {
 	type args struct {
 		boundary string

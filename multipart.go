@@ -49,6 +49,10 @@ func NewMultipart() *Multipart {
 	return m
 }
 
+func (m *Multipart) Boundary() string {
+	return m.boundary
+}
+
 func (m *Multipart) SetBoundary(boundary string) {
 	m.boundary = boundary
 
