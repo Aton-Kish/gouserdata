@@ -22,6 +22,7 @@ package userdata
 
 import (
 	"bytes"
+	"errors"
 	"net/textproto"
 	"testing"
 
@@ -102,6 +103,7 @@ func TestMultipart_SetBoundary(t *testing.T) {
 		multipart Multipart
 		args      args
 		expected  Multipart
+		err       error
 	}{
 		{
 			name:      "positive case: quoted",
@@ -137,12 +139,90 @@ func TestMultipart_SetBoundary(t *testing.T) {
 				boundary: "+Go+User+Data+Boundary++",
 			},
 		},
+		{
+			name:      "positive case: valid characters",
+			multipart: *NewMultipart(),
+			args: args{
+				boundary: "0-9a-zA-Z'()+_,-./:=?",
+			},
+			expected: Multipart{
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"0-9a-zA-Z'()+_,-./:=?\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
+				Parts:    []Part{},
+				boundary: "0-9a-zA-Z'()+_,-./:=?",
+			},
+		},
+		{
+			name:      "negative case: empty boundary",
+			multipart: *NewMultipart(),
+			args: args{
+				boundary: "",
+			},
+			expected: Multipart{
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
+				Parts:    []Part{},
+				boundary: "+Go+User+Data+Boundary==",
+			},
+			err: errors.New("invalid boundary"),
+		},
+		{
+			name:      "negative case: over 70 characters",
+			multipart: *NewMultipart(),
+			args: args{
+				boundary: "+Go+User+Data+Boundary==+Go+User+Data+Boundary==+Go+User+Data+Boundary==",
+			},
+			expected: Multipart{
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
+				Parts:    []Part{},
+				boundary: "+Go+User+Data+Boundary==",
+			},
+			err: errors.New("invalid boundary"),
+		},
+		{
+			name:      "negative case: includes invalid character",
+			multipart: *NewMultipart(),
+			args: args{
+				boundary: "!Go+User+Data+Boundary==",
+			},
+			expected: Multipart{
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
+				Parts:    []Part{},
+				boundary: "+Go+User+Data+Boundary==",
+			},
+			err: errors.New("invalid boundary"),
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.multipart.SetBoundary(tt.args.boundary)
-			assert.Equal(t, tt.expected, tt.multipart)
+			err := tt.multipart.SetBoundary(tt.args.boundary)
+
+			if tt.err == nil {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, tt.multipart)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, tt.err, err)
+			}
 		})
 	}
 }

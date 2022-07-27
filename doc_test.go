@@ -23,6 +23,7 @@ package userdata_test
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"strings"
 
 	userdata "github.com/Aton-Kish/gouserdata"
@@ -65,7 +66,9 @@ echo 'こんにちは世界'`)
 func ExampleMultipart_SetBoundary() {
 	d := userdata.NewMultipart()
 
-	d.SetBoundary("+Custom+User+Data+Boundary+")
+	if err := d.SetBoundary("+Custom+User+Data+Boundary+"); err != nil {
+		log.Fatal(err)
+	}
 
 	scr := []byte(`#!/bin/bash
 echo 'Hello World'`)
