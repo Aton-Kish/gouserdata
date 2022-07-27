@@ -54,7 +54,8 @@ func TestPart_SetBody(t *testing.T) {
 						"Content-Type":              {"text/x-shellscript; charset=us-ascii"},
 					},
 				},
-				Body: []byte("#!/bin/bash\n" + "echo 'Hello World'"),
+				Body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
+				mediaType: MediaTypeXShellscript,
 			},
 		},
 		{
@@ -75,6 +76,7 @@ func TestPart_SetBody(t *testing.T) {
 					// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
 					"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
 				),
+				mediaType: MediaTypeXShellscript,
 			},
 		},
 	}

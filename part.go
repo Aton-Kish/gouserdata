@@ -30,8 +30,9 @@ import (
 )
 
 type Part struct {
-	Header Header
-	Body   []byte
+	Header    Header
+	Body      []byte
+	mediaType MediaType
 }
 
 func NewPart() *Part {
@@ -55,6 +56,7 @@ func (p *Part) SetBody(mediaType MediaType, body []byte) {
 	p.Header.Set("Content-Type", typ)
 
 	p.Body = body
+	p.mediaType = mediaType
 }
 
 func (p *Part) Render(w io.Writer) error {
