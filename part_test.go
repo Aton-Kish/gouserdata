@@ -28,7 +28,164 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPart_Set(t *testing.T) {
+func TestPart_MediaType(t *testing.T) {
+	tests := []struct {
+		name     string
+		part     Part
+		expected MediaType
+	}{
+		{
+			name: "positive case: empty",
+			part: func() Part {
+				p := NewPart()
+
+				return *p
+			}(),
+			expected: MediaType(""),
+		},
+		{
+			name: "positive case: text/cloud-boothook",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeCloudBoothook, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeCloudBoothook,
+		},
+		{
+			name: "positive case: text/cloud-config",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeCloudConfig, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeCloudConfig,
+		},
+		{
+			name: "positive case: text/cloud-config-archive",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeCloudConfigArchive, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeCloudConfigArchive,
+		},
+		{
+			name: "positive case: text/cloud-config-jsonp",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeCloudConfigJsonp, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeCloudConfigJsonp,
+		},
+		{
+			name: "positive case: text/jinja2",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeJinja2, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeJinja2,
+		},
+		{
+			name: "positive case: text/part-handler",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypePartHandler, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypePartHandler,
+		},
+		{
+			name: "positive case: text/x-include-once-url",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXIncludeOnceUrl, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeXIncludeOnceUrl,
+		},
+		{
+			name: "positive case: text/x-include-url",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXIncludeUrl, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeXIncludeUrl,
+		},
+		{
+			name: "positive case: text/x-shellscript",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXShellscript, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeXShellscript,
+		},
+		{
+			name: "positive case: text/x-shellscript-per-boot",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXShellscriptPerBoot, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeXShellscriptPerBoot,
+		},
+		{
+			name: "positive case: text/x-shellscript-per-instance",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXShellscriptPerInstance, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeXShellscriptPerInstance,
+		},
+		{
+			name: "positive case: text/x-shellscript-per-once",
+			part: func() Part {
+				p := NewPart()
+
+				p.SetBody(MediaTypeXShellscriptPerOnce, []byte{})
+
+				return *p
+			}(),
+			expected: MediaTypeXShellscriptPerOnce,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := tt.part.MediaType()
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
+func TestPart_SetBody(t *testing.T) {
 	type args struct {
 		mediaType MediaType
 		body      []byte
@@ -54,7 +211,8 @@ func TestPart_Set(t *testing.T) {
 						"Content-Type":              {"text/x-shellscript; charset=us-ascii"},
 					},
 				},
-				Body: []byte("#!/bin/bash\n" + "echo 'Hello World'"),
+				Body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
+				mediaType: MediaTypeXShellscript,
 			},
 		},
 		{
@@ -75,13 +233,14 @@ func TestPart_Set(t *testing.T) {
 					// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
 					"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
 				),
+				mediaType: MediaTypeXShellscript,
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.part.Set(tt.args.mediaType, tt.args.body)
+			tt.part.SetBody(tt.args.mediaType, tt.args.body)
 			assert.Equal(t, tt.expected, tt.part)
 		})
 	}
@@ -99,7 +258,7 @@ func TestPart_Render(t *testing.T) {
 			part: func() Part {
 				p := NewPart()
 
-				p.Set(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
+				p.SetBody(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
 
 				return *p
 			}(),
@@ -114,7 +273,7 @@ func TestPart_Render(t *testing.T) {
 			part: func() Part {
 				p := NewPart()
 
-				p.Set(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
+				p.SetBody(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
 
 				return *p
 			}(),

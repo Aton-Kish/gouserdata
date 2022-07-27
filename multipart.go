@@ -21,14 +21,20 @@
 package userdata
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"mime"
+	"regexp"
 )
 
 const (
 	defaultBoundary    = "+Go+User+Data+Boundary=="
 	defaultMIMEVersion = "1.0"
+)
+
+var (
+	boundaryRe = regexp.MustCompile(`^[0-9a-zA-Z'()+_,-./:=?]{1,70}$`)
 )
 
 type Multipart struct {
@@ -49,16 +55,26 @@ func NewMultipart() *Multipart {
 	return m
 }
 
-func (m *Multipart) SetBoundary(boundary string) {
+func (m *Multipart) Boundary() string {
+	return m.boundary
+}
+
+func (m *Multipart) SetBoundary(boundary string) error {
+	if !boundaryRe.MatchString(boundary) {
+		return errors.New("invalid boundary")
+	}
+
 	m.boundary = boundary
 
 	typ := mime.FormatMediaType("multipart/mixed", map[string]string{"boundary": boundary})
 	m.Header.Set("Content-Type", typ)
+
+	return nil
 }
 
 func (m *Multipart) AddPart(mediaType MediaType, body []byte) {
 	part := NewPart()
-	part.Set(mediaType, body)
+	part.SetBody(mediaType, body)
 	m.Parts = append(m.Parts, *part)
 }
 

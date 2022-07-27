@@ -22,6 +22,7 @@ package userdata
 
 import (
 	"bytes"
+	"errors"
 	"net/textproto"
 	"testing"
 
@@ -56,6 +57,42 @@ func TestNewMultipart(t *testing.T) {
 	}
 }
 
+func TestMultipart_Boundary(t *testing.T) {
+	tests := []struct {
+		name      string
+		multipart Multipart
+		expected  string
+	}{
+		{
+			name: "positive case: default",
+			multipart: func() Multipart {
+				m := NewMultipart()
+
+				return *m
+			}(),
+			expected: "+Go+User+Data+Boundary==",
+		},
+		{
+			name: "positive case: +Custom+User+Data+Boundary+",
+			multipart: func() Multipart {
+				m := NewMultipart()
+
+				m.SetBoundary("+Custom+User+Data+Boundary+")
+
+				return *m
+			}(),
+			expected: "+Custom+User+Data+Boundary+",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := tt.multipart.Boundary()
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
 func TestMultipart_SetBoundary(t *testing.T) {
 	type args struct {
 		boundary string
@@ -66,6 +103,7 @@ func TestMultipart_SetBoundary(t *testing.T) {
 		multipart Multipart
 		args      args
 		expected  Multipart
+		err       error
 	}{
 		{
 			name:      "positive case: quoted",
@@ -101,12 +139,90 @@ func TestMultipart_SetBoundary(t *testing.T) {
 				boundary: "+Go+User+Data+Boundary++",
 			},
 		},
+		{
+			name:      "positive case: valid characters",
+			multipart: *NewMultipart(),
+			args: args{
+				boundary: "0-9a-zA-Z'()+_,-./:=?",
+			},
+			expected: Multipart{
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"0-9a-zA-Z'()+_,-./:=?\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
+				Parts:    []Part{},
+				boundary: "0-9a-zA-Z'()+_,-./:=?",
+			},
+		},
+		{
+			name:      "negative case: empty boundary",
+			multipart: *NewMultipart(),
+			args: args{
+				boundary: "",
+			},
+			expected: Multipart{
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
+				Parts:    []Part{},
+				boundary: "+Go+User+Data+Boundary==",
+			},
+			err: errors.New("invalid boundary"),
+		},
+		{
+			name:      "negative case: over 70 characters",
+			multipart: *NewMultipart(),
+			args: args{
+				boundary: "+Go+User+Data+Boundary==+Go+User+Data+Boundary==+Go+User+Data+Boundary==",
+			},
+			expected: Multipart{
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
+				Parts:    []Part{},
+				boundary: "+Go+User+Data+Boundary==",
+			},
+			err: errors.New("invalid boundary"),
+		},
+		{
+			name:      "negative case: includes invalid character",
+			multipart: *NewMultipart(),
+			args: args{
+				boundary: "!Go+User+Data+Boundary==",
+			},
+			expected: Multipart{
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
+				Parts:    []Part{},
+				boundary: "+Go+User+Data+Boundary==",
+			},
+			err: errors.New("invalid boundary"),
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.multipart.SetBoundary(tt.args.boundary)
-			assert.Equal(t, tt.expected, tt.multipart)
+			err := tt.multipart.SetBoundary(tt.args.boundary)
+
+			if tt.err == nil {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, tt.multipart)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, tt.err, err)
+			}
 		})
 	}
 }
@@ -151,7 +267,8 @@ func TestMultipart_AddPart(t *testing.T) {
 								"Content-Type":              {"text/cloud-config; charset=us-ascii"},
 							},
 						},
-						Body: []byte("#cloud-config\n" + "timezone: Europe/London"),
+						Body:      []byte("#cloud-config\n" + "timezone: Europe/London"),
+						mediaType: MediaTypeCloudConfig,
 					},
 					{
 						Header: Header{
@@ -160,7 +277,8 @@ func TestMultipart_AddPart(t *testing.T) {
 								"Content-Type":              {"text/x-shellscript; charset=us-ascii"},
 							},
 						},
-						Body: []byte("#!/bin/bash\n" + "echo 'Hello World'"),
+						Body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
+						mediaType: MediaTypeXShellscript,
 					},
 				},
 				boundary: "+Go+User+Data+Boundary==",
@@ -194,7 +312,8 @@ func TestMultipart_AddPart(t *testing.T) {
 								"Content-Type":              {"text/cloud-config; charset=us-ascii"},
 							},
 						},
-						Body: []byte("#cloud-config\n" + "timezone: Asia/Tokyo"),
+						Body:      []byte("#cloud-config\n" + "timezone: Asia/Tokyo"),
+						mediaType: MediaTypeCloudConfig,
 					},
 					{
 						Header: Header{
@@ -207,6 +326,7 @@ func TestMultipart_AddPart(t *testing.T) {
 							// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
 							"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
 						),
+						mediaType: MediaTypeXShellscript,
 					},
 				},
 				boundary: "+Go+User+Data+Boundary==",
