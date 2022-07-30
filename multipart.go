@@ -34,7 +34,7 @@ const (
 )
 
 var (
-	boundaryRe = regexp.MustCompile(`^[0-9a-zA-Z'()+_,-./:=?]{1,70}$`)
+	boundaryRe = regexp.MustCompile(`^[0-9a-zA-Z'()+_,-./:=? ]{0,69}[0-9a-zA-Z'()+_,-./:=?]$`)
 )
 
 type Multipart struct {

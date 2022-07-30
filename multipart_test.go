@@ -140,6 +140,23 @@ func TestMultipart_SetBoundary(t *testing.T) {
 			},
 		},
 		{
+			name:      "positive case: not ending with white space",
+			multipart: *NewMultipart(),
+			args: args{
+				boundary: " Go User Data Boundary==",
+			},
+			expected: Multipart{
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\" Go User Data Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
+				Parts:    []Part{},
+				boundary: " Go User Data Boundary==",
+			},
+		},
+		{
 			name:      "positive case: valid characters",
 			multipart: *NewMultipart(),
 			args: args{
@@ -161,6 +178,24 @@ func TestMultipart_SetBoundary(t *testing.T) {
 			multipart: *NewMultipart(),
 			args: args{
 				boundary: "",
+			},
+			expected: Multipart{
+				Header: Header{
+					textproto.MIMEHeader{
+						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
+						"Mime-Version": {"1.0"},
+					},
+				},
+				Parts:    []Part{},
+				boundary: "+Go+User+Data+Boundary==",
+			},
+			err: errors.New("invalid boundary"),
+		},
+		{
+			name:      "negative case: ending with white space",
+			multipart: *NewMultipart(),
+			args: args{
+				boundary: "+Go+User+Data+Boundary ",
 			},
 			expected: Multipart{
 				Header: Header{
