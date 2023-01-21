@@ -29,22 +29,28 @@ import (
 	"golang.org/x/exp/utf8string"
 )
 
-type Part struct {
-	Header    Header
-	Body      []byte
+type Part interface {
+	MediaType() MediaType
+	SetBody(mediaType MediaType, body []byte)
+	Renderer
+}
+
+type part struct {
+	header    Header
+	body      []byte
 	mediaType MediaType
 }
 
-func NewPart() *Part {
+func NewPart() Part {
 	h := NewHeader()
-	return &Part{Header: *h}
+	return &part{header: h}
 }
 
-func (p *Part) MediaType() MediaType {
+func (p *part) MediaType() MediaType {
 	return p.mediaType
 }
 
-func (p *Part) SetBody(mediaType MediaType, body []byte) {
+func (p *part) SetBody(mediaType MediaType, body []byte) {
 	charset := "us-ascii"
 	enc := "7bit"
 
@@ -56,15 +62,15 @@ func (p *Part) SetBody(mediaType MediaType, body []byte) {
 
 	typ := mime.FormatMediaType(string(mediaType), map[string]string{"charset": charset})
 
-	p.Header.Set("Content-Transfer-Encoding", enc)
-	p.Header.Set("Content-Type", typ)
+	p.header.Set("Content-Transfer-Encoding", enc)
+	p.header.Set("Content-Type", typ)
 
-	p.Body = body
+	p.body = body
 	p.mediaType = mediaType
 }
 
-func (p *Part) Render(w io.Writer) error {
-	if err := p.Header.Render(w); err != nil {
+func (p *part) Render(w io.Writer) error {
+	if err := p.header.Render(w); err != nil {
 		return err
 	}
 
@@ -72,7 +78,7 @@ func (p *Part) Render(w io.Writer) error {
 		return err
 	}
 
-	if _, err := w.Write(p.Body); err != nil {
+	if _, err := w.Write(p.body); err != nil {
 		return err
 	}
 

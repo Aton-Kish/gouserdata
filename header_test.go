@@ -48,7 +48,7 @@ func TestHeader_Render(t *testing.T) {
 				h.Add("Key3", "Key3-Value2")
 				h.Add("Key3", "Key3-Value3")
 
-				return *h
+				return h
 			}(),
 			expected: "Key1: Key1-Value1\r\n" +
 				"Key2: Key2-Value1\r\n" +
@@ -71,7 +71,7 @@ func TestHeader_Render(t *testing.T) {
 
 				h.Set("Key1", "Key1-Value1")
 
-				return *h
+				return h
 			}(),
 			expected: "Key1: Key1-Value1\r\n" +
 				"Key2: Key2-Value1\r\n" +

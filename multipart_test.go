@@ -32,18 +32,18 @@ import (
 func TestNewMultipart(t *testing.T) {
 	tests := []struct {
 		name     string
-		expected *Multipart
+		expected Multipart
 	}{
 		{
 			name: "positive case",
-			expected: &Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts:    []Part{},
+				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
 		},
@@ -68,7 +68,7 @@ func TestMultipart_Boundary(t *testing.T) {
 			multipart: func() Multipart {
 				m := NewMultipart()
 
-				return *m
+				return m
 			}(),
 			expected: "+Go+User+Data+Boundary==",
 		},
@@ -79,7 +79,7 @@ func TestMultipart_Boundary(t *testing.T) {
 
 				m.SetBoundary("+Custom+User+Data+Boundary+")
 
-				return *m
+				return m
 			}(),
 			expected: "+Custom+User+Data+Boundary+",
 		},
@@ -107,140 +107,140 @@ func TestMultipart_SetBoundary(t *testing.T) {
 	}{
 		{
 			name:      "positive case: quoted",
-			multipart: *NewMultipart(),
+			multipart: NewMultipart(),
 			args: args{
 				boundary: "+Go+User+Data+Boundary==",
 			},
-			expected: Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts:    []Part{},
+				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
 		},
 		{
 			name:      "positive case: non quoted",
-			multipart: *NewMultipart(),
+			multipart: NewMultipart(),
 			args: args{
 				boundary: "+Go+User+Data+Boundary++",
 			},
-			expected: Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=+Go+User+Data+Boundary++"},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts:    []Part{},
+				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary++",
 			},
 		},
 		{
 			name:      "positive case: not ending with white space",
-			multipart: *NewMultipart(),
+			multipart: NewMultipart(),
 			args: args{
 				boundary: " Go User Data Boundary==",
 			},
-			expected: Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=\" Go User Data Boundary==\""},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts:    []Part{},
+				parts:    []Part{},
 				boundary: " Go User Data Boundary==",
 			},
 		},
 		{
 			name:      "positive case: valid characters",
-			multipart: *NewMultipart(),
+			multipart: NewMultipart(),
 			args: args{
 				boundary: "0-9a-zA-Z'()+_,-./:=?",
 			},
-			expected: Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=\"0-9a-zA-Z'()+_,-./:=?\""},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts:    []Part{},
+				parts:    []Part{},
 				boundary: "0-9a-zA-Z'()+_,-./:=?",
 			},
 		},
 		{
 			name:      "negative case: empty boundary",
-			multipart: *NewMultipart(),
+			multipart: NewMultipart(),
 			args: args{
 				boundary: "",
 			},
-			expected: Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts:    []Part{},
+				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
 			err: errors.New("invalid boundary"),
 		},
 		{
 			name:      "negative case: ending with white space",
-			multipart: *NewMultipart(),
+			multipart: NewMultipart(),
 			args: args{
 				boundary: "+Go+User+Data+Boundary ",
 			},
-			expected: Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts:    []Part{},
+				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
 			err: errors.New("invalid boundary"),
 		},
 		{
 			name:      "negative case: over 70 characters",
-			multipart: *NewMultipart(),
+			multipart: NewMultipart(),
 			args: args{
 				boundary: "+Go+User+Data+Boundary==+Go+User+Data+Boundary==+Go+User+Data+Boundary==",
 			},
-			expected: Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts:    []Part{},
+				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
 			err: errors.New("invalid boundary"),
 		},
 		{
 			name:      "negative case: includes invalid character",
-			multipart: *NewMultipart(),
+			multipart: NewMultipart(),
 			args: args{
 				boundary: "!Go+User+Data+Boundary==",
 			},
-			expected: Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts:    []Part{},
+				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
 			err: errors.New("invalid boundary"),
@@ -276,7 +276,7 @@ func TestMultipart_AddPart(t *testing.T) {
 	}{
 		{
 			name:      "positive case: ascii only",
-			multipart: *NewMultipart(),
+			multipart: NewMultipart(),
 			args: []args{
 				{
 					mediaType: MediaTypeCloudConfig,
@@ -287,32 +287,32 @@ func TestMultipart_AddPart(t *testing.T) {
 					body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 				},
 			},
-			expected: Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts: []Part{
-					{
-						Header: Header{
+				parts: []Part{
+					&part{
+						header: &header{
 							textproto.MIMEHeader{
 								"Content-Transfer-Encoding": {"7bit"},
 								"Content-Type":              {"text/cloud-config; charset=us-ascii"},
 							},
 						},
-						Body:      []byte("#cloud-config\n" + "timezone: Europe/London"),
+						body:      []byte("#cloud-config\n" + "timezone: Europe/London"),
 						mediaType: MediaTypeCloudConfig,
 					},
-					{
-						Header: Header{
+					&part{
+						header: &header{
 							textproto.MIMEHeader{
 								"Content-Transfer-Encoding": {"7bit"},
 								"Content-Type":              {"text/x-shellscript; charset=us-ascii"},
 							},
 						},
-						Body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
+						body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 						mediaType: MediaTypeXShellscript,
 					},
 				},
@@ -321,7 +321,7 @@ func TestMultipart_AddPart(t *testing.T) {
 		},
 		{
 			name:      "positive case: include utf-8",
-			multipart: *NewMultipart(),
+			multipart: NewMultipart(),
 			args: []args{
 				{
 					mediaType: MediaTypeCloudConfig,
@@ -332,32 +332,32 @@ func TestMultipart_AddPart(t *testing.T) {
 					body:      []byte("#!/bin/bash\n" + "echo 'こんにちは世界'"),
 				},
 			},
-			expected: Multipart{
-				Header: Header{
+			expected: &multipart{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Type": {"multipart/mixed; boundary=\"+Go+User+Data+Boundary==\""},
 						"Mime-Version": {"1.0"},
 					},
 				},
-				Parts: []Part{
-					{
-						Header: Header{
+				parts: []Part{
+					&part{
+						header: &header{
 							textproto.MIMEHeader{
 								"Content-Transfer-Encoding": {"7bit"},
 								"Content-Type":              {"text/cloud-config; charset=us-ascii"},
 							},
 						},
-						Body:      []byte("#cloud-config\n" + "timezone: Asia/Tokyo"),
+						body:      []byte("#cloud-config\n" + "timezone: Asia/Tokyo"),
 						mediaType: MediaTypeCloudConfig,
 					},
-					{
-						Header: Header{
+					&part{
+						header: &header{
 							textproto.MIMEHeader{
 								"Content-Transfer-Encoding": {"base64"},
 								"Content-Type":              {"text/x-shellscript; charset=utf-8"},
 							},
 						},
-						Body: []byte(
+						body: []byte(
 							// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
 							"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
 						),
@@ -389,12 +389,12 @@ func TestMultipart_Render(t *testing.T) {
 		{
 			name: "positive case: ascii only",
 			multipart: func() Multipart {
-				d := NewMultipart()
+				m := NewMultipart()
 
-				d.AddPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Europe/London"))
-				d.AddPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
+				m.AddPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Europe/London"))
+				m.AddPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
 
-				return *d
+				return m
 			}(),
 			expected: "Content-Type: multipart/mixed; boundary=\"+Go+User+Data+Boundary==\"\r\n" +
 				"Mime-Version: 1.0\r\n" +
@@ -418,12 +418,12 @@ func TestMultipart_Render(t *testing.T) {
 		{
 			name: "positive case: include utf-8",
 			multipart: func() Multipart {
-				d := NewMultipart()
+				m := NewMultipart()
 
-				d.AddPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Asia/Tokyo"))
-				d.AddPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
+				m.AddPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Asia/Tokyo"))
+				m.AddPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
 
-				return *d
+				return m
 			}(),
 			expected: "Content-Type: multipart/mixed; boundary=\"+Go+User+Data+Boundary==\"\r\n" +
 				"Mime-Version: 1.0\r\n" +

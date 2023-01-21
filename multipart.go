@@ -37,29 +37,36 @@ var (
 	boundaryRe = regexp.MustCompile(`^[0-9a-zA-Z'()+_,-./:=? ]{0,69}[0-9a-zA-Z'()+_,-./:=?]$`)
 )
 
-type Multipart struct {
-	Header   Header
-	Parts    []Part
+type Multipart interface {
+	Boundary() string
+	SetBoundary(boundary string) error
+	AddPart(mediaType MediaType, body []byte)
+	Renderer
+}
+
+type multipart struct {
+	header   Header
+	parts    []Part
 	boundary string
 }
 
-func NewMultipart() *Multipart {
+func NewMultipart() Multipart {
 	h := NewHeader()
 	h.Set("Mime-Version", defaultMIMEVersion)
 
 	p := make([]Part, 0)
 
-	m := &Multipart{Header: *h, Parts: p}
+	m := &multipart{header: h, parts: p}
 	m.SetBoundary(defaultBoundary)
 
 	return m
 }
 
-func (m *Multipart) Boundary() string {
+func (m *multipart) Boundary() string {
 	return m.boundary
 }
 
-func (m *Multipart) SetBoundary(boundary string) error {
+func (m *multipart) SetBoundary(boundary string) error {
 	if !boundaryRe.MatchString(boundary) {
 		return errors.New("invalid boundary")
 	}
@@ -67,19 +74,19 @@ func (m *Multipart) SetBoundary(boundary string) error {
 	m.boundary = boundary
 
 	typ := mime.FormatMediaType("multipart/mixed", map[string]string{"boundary": boundary})
-	m.Header.Set("Content-Type", typ)
+	m.header.Set("Content-Type", typ)
 
 	return nil
 }
 
-func (m *Multipart) AddPart(mediaType MediaType, body []byte) {
+func (m *multipart) AddPart(mediaType MediaType, body []byte) {
 	part := NewPart()
 	part.SetBody(mediaType, body)
-	m.Parts = append(m.Parts, *part)
+	m.parts = append(m.parts, part)
 }
 
-func (m *Multipart) Render(w io.Writer) error {
-	if err := m.Header.Render(w); err != nil {
+func (m *multipart) Render(w io.Writer) error {
+	if err := m.header.Render(w); err != nil {
 		return err
 	}
 
@@ -87,7 +94,7 @@ func (m *Multipart) Render(w io.Writer) error {
 		return err
 	}
 
-	for _, part := range m.Parts {
+	for _, part := range m.parts {
 		if _, err := fmt.Fprintf(w, "--%s\r\n", m.boundary); err != nil {
 			return err
 		}

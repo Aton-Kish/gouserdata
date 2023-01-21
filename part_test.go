@@ -39,7 +39,7 @@ func TestPart_MediaType(t *testing.T) {
 			part: func() Part {
 				p := NewPart()
 
-				return *p
+				return p
 			}(),
 			expected: MediaType(""),
 		},
@@ -50,7 +50,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeCloudBoothook, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeCloudBoothook,
 		},
@@ -61,7 +61,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeCloudConfig, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeCloudConfig,
 		},
@@ -72,7 +72,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeCloudConfigArchive, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeCloudConfigArchive,
 		},
@@ -83,7 +83,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeCloudConfigJsonp, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeCloudConfigJsonp,
 		},
@@ -94,7 +94,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeJinja2, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeJinja2,
 		},
@@ -105,7 +105,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypePartHandler, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypePartHandler,
 		},
@@ -116,7 +116,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeXIncludeOnceUrl, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeXIncludeOnceUrl,
 		},
@@ -127,7 +127,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeXIncludeUrl, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeXIncludeUrl,
 		},
@@ -138,7 +138,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeXShellscript, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeXShellscript,
 		},
@@ -149,7 +149,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeXShellscriptPerBoot, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeXShellscriptPerBoot,
 		},
@@ -160,7 +160,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeXShellscriptPerInstance, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeXShellscriptPerInstance,
 		},
@@ -171,7 +171,7 @@ func TestPart_MediaType(t *testing.T) {
 
 				p.SetBody(MediaTypeXShellscriptPerOnce, []byte{})
 
-				return *p
+				return p
 			}(),
 			expected: MediaTypeXShellscriptPerOnce,
 		},
@@ -199,37 +199,37 @@ func TestPart_SetBody(t *testing.T) {
 	}{
 		{
 			name: "positive case: ascii",
-			part: *NewPart(),
+			part: NewPart(),
 			args: args{
 				mediaType: MediaTypeXShellscript,
 				body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 			},
-			expected: Part{
-				Header: Header{
+			expected: &part{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Transfer-Encoding": {"7bit"},
 						"Content-Type":              {"text/x-shellscript; charset=us-ascii"},
 					},
 				},
-				Body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
+				body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 				mediaType: MediaTypeXShellscript,
 			},
 		},
 		{
 			name: "positive case: utf-8",
-			part: *NewPart(),
+			part: NewPart(),
 			args: args{
 				mediaType: MediaTypeXShellscript,
 				body:      []byte("#!/bin/bash\n" + "echo 'こんにちは世界'"),
 			},
-			expected: Part{
-				Header: Header{
+			expected: &part{
+				header: &header{
 					textproto.MIMEHeader{
 						"Content-Transfer-Encoding": {"base64"},
 						"Content-Type":              {"text/x-shellscript; charset=utf-8"},
 					},
 				},
-				Body: []byte(
+				body: []byte(
 					// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
 					"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
 				),
@@ -260,7 +260,7 @@ func TestPart_Render(t *testing.T) {
 
 				p.SetBody(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
 
-				return *p
+				return p
 			}(),
 			expected: "Content-Transfer-Encoding: 7bit\r\n" +
 				"Content-Type: text/x-shellscript; charset=us-ascii\r\n" +
@@ -275,7 +275,7 @@ func TestPart_Render(t *testing.T) {
 
 				p.SetBody(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
 
-				return *p
+				return p
 			}(),
 			expected: "Content-Transfer-Encoding: base64\r\n" +
 				"Content-Type: text/x-shellscript; charset=utf-8\r\n" +

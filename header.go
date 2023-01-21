@@ -29,16 +29,25 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-type Header struct {
+type Header interface {
+	Add(key, value string)
+	Set(key, value string)
+	Get(key string) string
+	Values(key string) []string
+	Del(key string)
+	Renderer
+}
+
+type header struct {
 	textproto.MIMEHeader
 }
 
-func NewHeader() *Header {
+func NewHeader() Header {
 	h := make(textproto.MIMEHeader)
-	return &Header{h}
+	return &header{h}
 }
 
-func (h *Header) Render(w io.Writer) error {
+func (h *header) Render(w io.Writer) error {
 	keys := maps.Keys(h.MIMEHeader)
 	sort.Strings(keys)
 
