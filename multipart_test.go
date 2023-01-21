@@ -22,7 +22,6 @@ package userdata
 
 import (
 	"bytes"
-	"errors"
 	"net/textproto"
 	"testing"
 
@@ -160,7 +159,7 @@ func TestNewMultipartWithBoundary(t *testing.T) {
 				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
-			err: errors.New("invalid boundary"),
+			err: &Error{Op: "new", Err: ErrInvalidBoundary},
 		},
 		{
 			name: "negative case: ending with white space",
@@ -177,7 +176,7 @@ func TestNewMultipartWithBoundary(t *testing.T) {
 				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
-			err: errors.New("invalid boundary"),
+			err: &Error{Op: "new", Err: ErrInvalidBoundary},
 		},
 		{
 			name: "negative case: over 70 characters",
@@ -194,7 +193,7 @@ func TestNewMultipartWithBoundary(t *testing.T) {
 				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
-			err: errors.New("invalid boundary"),
+			err: &Error{Op: "new", Err: ErrInvalidBoundary},
 		},
 		{
 			name: "negative case: includes invalid character",
@@ -211,7 +210,7 @@ func TestNewMultipartWithBoundary(t *testing.T) {
 				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
-			err: errors.New("invalid boundary"),
+			err: &Error{Op: "new", Err: ErrInvalidBoundary},
 		},
 	}
 

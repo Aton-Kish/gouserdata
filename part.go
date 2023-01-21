@@ -62,14 +62,17 @@ func (p *part) Render(w io.Writer) error {
 	}
 
 	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
+		err = &Error{Op: "render", Err: err}
 		return err
 	}
 
 	if _, err := w.Write(p.body); err != nil {
+		err = &Error{Op: "render", Err: err}
 		return err
 	}
 
 	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
+		err = &Error{Op: "render", Err: err}
 		return err
 	}
 

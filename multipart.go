@@ -21,7 +21,6 @@
 package userdata
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -54,7 +53,8 @@ func NewMultipart() (Multipart, error) {
 
 func NewMultipartWithBoundary(boundary string) (Multipart, error) {
 	if !boundaryRe.MatchString(boundary) {
-		return nil, errors.New("invalid boundary")
+		err := &Error{Op: "new", Err: ErrInvalidBoundary}
+		return nil, err
 	}
 
 	typ := mime.FormatMediaType("multipart/mixed", map[string]string{"boundary": boundary})
@@ -80,11 +80,13 @@ func (m *multipart) Render(w io.Writer) error {
 	}
 
 	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
+		err = &Error{Op: "render", Err: err}
 		return err
 	}
 
 	for _, part := range m.parts {
 		if _, err := fmt.Fprintf(w, "--%s\r\n", m.boundary); err != nil {
+			err = &Error{Op: "render", Err: err}
 			return err
 		}
 
@@ -93,11 +95,13 @@ func (m *multipart) Render(w io.Writer) error {
 		}
 
 		if _, err := fmt.Fprint(w, "\r\n"); err != nil {
+			err = &Error{Op: "render", Err: err}
 			return err
 		}
 	}
 
 	if _, err := fmt.Fprintf(w, "--%s--\r\n", m.boundary); err != nil {
+		err = &Error{Op: "render", Err: err}
 		return err
 	}
 
