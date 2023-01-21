@@ -38,9 +38,7 @@ var (
 )
 
 type Multipart interface {
-	Boundary() string
-	SetBoundary(boundary string) error
-	AddPart(mediaType MediaType, body []byte)
+	Append(part Part)
 	Renderer
 }
 
@@ -50,38 +48,29 @@ type multipart struct {
 	boundary string
 }
 
-func NewMultipart() Multipart {
+func NewMultipart() (Multipart, error) {
+	return NewMultipartWithBoundary(defaultBoundary)
+}
+
+func NewMultipartWithBoundary(boundary string) (Multipart, error) {
+	if !boundaryRe.MatchString(boundary) {
+		return nil, errors.New("invalid boundary")
+	}
+
+	typ := mime.FormatMediaType("multipart/mixed", map[string]string{"boundary": boundary})
+
 	h := NewHeader()
 	h.Set("Mime-Version", defaultMIMEVersion)
+	h.Set("Content-Type", typ)
 
 	p := make([]Part, 0)
 
-	m := &multipart{header: h, parts: p}
-	m.SetBoundary(defaultBoundary)
+	m := &multipart{header: h, parts: p, boundary: boundary}
 
-	return m
+	return m, nil
 }
 
-func (m *multipart) Boundary() string {
-	return m.boundary
-}
-
-func (m *multipart) SetBoundary(boundary string) error {
-	if !boundaryRe.MatchString(boundary) {
-		return errors.New("invalid boundary")
-	}
-
-	m.boundary = boundary
-
-	typ := mime.FormatMediaType("multipart/mixed", map[string]string{"boundary": boundary})
-	m.header.Set("Content-Type", typ)
-
-	return nil
-}
-
-func (m *multipart) AddPart(mediaType MediaType, body []byte) {
-	part := NewPart()
-	part.SetBody(mediaType, body)
+func (m *multipart) Append(part Part) {
 	m.parts = append(m.parts, part)
 }
 

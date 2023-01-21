@@ -30,18 +30,23 @@ import (
 )
 
 func ExampleMultipart_Render() {
-	d := userdata.NewMultipart()
+	m, err := userdata.NewMultipart()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	cfg := []byte(`#cloud-config
 timezone: Europe/London`)
-	d.AddPart(userdata.MediaTypeCloudConfig, cfg)
+	m.Append(userdata.NewPart(userdata.MediaTypeCloudConfig, cfg))
 
 	scr := []byte(`#!/bin/bash
 echo 'Hello World'`)
-	d.AddPart(userdata.MediaTypeXShellscript, scr)
+	m.Append(userdata.NewPart(userdata.MediaTypeXShellscript, scr))
 
 	buf := new(bytes.Buffer)
-	d.Render(buf)
+	if err := m.Render(buf); err != nil {
+		log.Fatal(err)
+	}
 
 	output := buf.String()
 	output = strings.ReplaceAll(output, "\r\n", "\n") // for testing
@@ -68,18 +73,23 @@ echo 'Hello World'`)
 }
 
 func ExampleMultipart_Render_includesUtf8() {
-	d := userdata.NewMultipart()
+	m, err := userdata.NewMultipart()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	cfg := []byte(`#cloud-config
 timezone: Asia/Tokyo`)
-	d.AddPart(userdata.MediaTypeCloudConfig, cfg)
+	m.Append(userdata.NewPart(userdata.MediaTypeCloudConfig, cfg))
 
 	scr := []byte(`#!/bin/bash
 echo 'こんにちは世界'`)
-	d.AddPart(userdata.MediaTypeXShellscript, scr)
+	m.Append(userdata.NewPart(userdata.MediaTypeXShellscript, scr))
 
 	buf := new(bytes.Buffer)
-	d.Render(buf)
+	if err := m.Render(buf); err != nil {
+		log.Fatal(err)
+	}
 
 	output := buf.String()
 	output = strings.ReplaceAll(output, "\r\n", "\n") // for testing
@@ -104,19 +114,20 @@ echo 'こんにちは世界'`)
 	// --+Go+User+Data+Boundary==--
 }
 
-func ExampleMultipart_SetBoundary() {
-	d := userdata.NewMultipart()
-
-	if err := d.SetBoundary("+Custom+User+Data+Boundary+"); err != nil {
+func ExampleMultipart_Render_withBoundary() {
+	m, err := userdata.NewMultipartWithBoundary("+Custom+User+Data+Boundary+")
+	if err != nil {
 		log.Fatal(err)
 	}
 
 	scr := []byte(`#!/bin/bash
 echo 'Hello World'`)
-	d.AddPart(userdata.MediaTypeXShellscript, scr)
+	m.Append(userdata.NewPart(userdata.MediaTypeXShellscript, scr))
 
 	buf := new(bytes.Buffer)
-	d.Render(buf)
+	if err := m.Render(buf); err != nil {
+		log.Fatal(err)
+	}
 
 	output := buf.String()
 	output = strings.ReplaceAll(output, "\r\n", "\n") // for testing

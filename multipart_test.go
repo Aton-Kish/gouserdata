@@ -33,6 +33,7 @@ func TestNewMultipart(t *testing.T) {
 	tests := []struct {
 		name     string
 		expected Multipart
+		err      error
 	}{
 		{
 			name: "positive case",
@@ -46,68 +47,38 @@ func TestNewMultipart(t *testing.T) {
 				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
+			err: nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := NewMultipart()
-			assert.Equal(t, tt.expected, actual)
+			actual, err := NewMultipart()
+
+			if tt.err == nil {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, actual)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, tt.err, err)
+			}
 		})
 	}
 }
 
-func TestMultipart_Boundary(t *testing.T) {
-	tests := []struct {
-		name      string
-		multipart Multipart
-		expected  string
-	}{
-		{
-			name: "positive case: default",
-			multipart: func() Multipart {
-				m := NewMultipart()
-
-				return m
-			}(),
-			expected: "+Go+User+Data+Boundary==",
-		},
-		{
-			name: "positive case: +Custom+User+Data+Boundary+",
-			multipart: func() Multipart {
-				m := NewMultipart()
-
-				m.SetBoundary("+Custom+User+Data+Boundary+")
-
-				return m
-			}(),
-			expected: "+Custom+User+Data+Boundary+",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			actual := tt.multipart.Boundary()
-			assert.Equal(t, tt.expected, actual)
-		})
-	}
-}
-
-func TestMultipart_SetBoundary(t *testing.T) {
+func TestNewMultipartWithBoundary(t *testing.T) {
 	type args struct {
 		boundary string
 	}
 
 	tests := []struct {
-		name      string
-		multipart Multipart
-		args      args
-		expected  Multipart
-		err       error
+		name     string
+		args     args
+		expected Multipart
+		err      error
 	}{
 		{
-			name:      "positive case: quoted",
-			multipart: NewMultipart(),
+			name: "positive case: quoted",
 			args: args{
 				boundary: "+Go+User+Data+Boundary==",
 			},
@@ -121,10 +92,10 @@ func TestMultipart_SetBoundary(t *testing.T) {
 				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary==",
 			},
+			err: nil,
 		},
 		{
-			name:      "positive case: non quoted",
-			multipart: NewMultipart(),
+			name: "positive case: non quoted",
 			args: args{
 				boundary: "+Go+User+Data+Boundary++",
 			},
@@ -138,10 +109,10 @@ func TestMultipart_SetBoundary(t *testing.T) {
 				parts:    []Part{},
 				boundary: "+Go+User+Data+Boundary++",
 			},
+			err: nil,
 		},
 		{
-			name:      "positive case: not ending with white space",
-			multipart: NewMultipart(),
+			name: "positive case: not ending with white space",
 			args: args{
 				boundary: " Go User Data Boundary==",
 			},
@@ -155,10 +126,10 @@ func TestMultipart_SetBoundary(t *testing.T) {
 				parts:    []Part{},
 				boundary: " Go User Data Boundary==",
 			},
+			err: nil,
 		},
 		{
-			name:      "positive case: valid characters",
-			multipart: NewMultipart(),
+			name: "positive case: valid characters",
 			args: args{
 				boundary: "0-9a-zA-Z'()+_,-./:=?",
 			},
@@ -172,10 +143,10 @@ func TestMultipart_SetBoundary(t *testing.T) {
 				parts:    []Part{},
 				boundary: "0-9a-zA-Z'()+_,-./:=?",
 			},
+			err: nil,
 		},
 		{
-			name:      "negative case: empty boundary",
-			multipart: NewMultipart(),
+			name: "negative case: empty boundary",
 			args: args{
 				boundary: "",
 			},
@@ -192,8 +163,7 @@ func TestMultipart_SetBoundary(t *testing.T) {
 			err: errors.New("invalid boundary"),
 		},
 		{
-			name:      "negative case: ending with white space",
-			multipart: NewMultipart(),
+			name: "negative case: ending with white space",
 			args: args{
 				boundary: "+Go+User+Data+Boundary ",
 			},
@@ -210,8 +180,7 @@ func TestMultipart_SetBoundary(t *testing.T) {
 			err: errors.New("invalid boundary"),
 		},
 		{
-			name:      "negative case: over 70 characters",
-			multipart: NewMultipart(),
+			name: "negative case: over 70 characters",
 			args: args{
 				boundary: "+Go+User+Data+Boundary==+Go+User+Data+Boundary==+Go+User+Data+Boundary==",
 			},
@@ -228,8 +197,7 @@ func TestMultipart_SetBoundary(t *testing.T) {
 			err: errors.New("invalid boundary"),
 		},
 		{
-			name:      "negative case: includes invalid character",
-			multipart: NewMultipart(),
+			name: "negative case: includes invalid character",
 			args: args{
 				boundary: "!Go+User+Data+Boundary==",
 			},
@@ -249,11 +217,11 @@ func TestMultipart_SetBoundary(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.multipart.SetBoundary(tt.args.boundary)
+			actual, err := NewMultipartWithBoundary(tt.args.boundary)
 
 			if tt.err == nil {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, tt.multipart)
+				assert.Equal(t, tt.expected, actual)
 			} else {
 				assert.Error(t, err)
 				assert.Equal(t, tt.err, err)
@@ -262,10 +230,9 @@ func TestMultipart_SetBoundary(t *testing.T) {
 	}
 }
 
-func TestMultipart_AddPart(t *testing.T) {
+func TestMultipart_Append(t *testing.T) {
 	type args struct {
-		mediaType MediaType
-		body      []byte
+		part Part
 	}
 
 	tests := []struct {
@@ -275,16 +242,17 @@ func TestMultipart_AddPart(t *testing.T) {
 		expected  Multipart
 	}{
 		{
-			name:      "positive case: ascii only",
-			multipart: NewMultipart(),
+			name: "positive case: ascii only",
+			multipart: func() Multipart {
+				m, _ := NewMultipart()
+				return m
+			}(),
 			args: []args{
 				{
-					mediaType: MediaTypeCloudConfig,
-					body:      []byte("#cloud-config\n" + "timezone: Europe/London"),
+					part: NewPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Europe/London")),
 				},
 				{
-					mediaType: MediaTypeXShellscript,
-					body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
+					part: NewPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'")),
 				},
 			},
 			expected: &multipart{
@@ -302,8 +270,7 @@ func TestMultipart_AddPart(t *testing.T) {
 								"Content-Type":              {"text/cloud-config; charset=us-ascii"},
 							},
 						},
-						body:      []byte("#cloud-config\n" + "timezone: Europe/London"),
-						mediaType: MediaTypeCloudConfig,
+						body: []byte("#cloud-config\n" + "timezone: Europe/London"),
 					},
 					&part{
 						header: &header{
@@ -312,24 +279,24 @@ func TestMultipart_AddPart(t *testing.T) {
 								"Content-Type":              {"text/x-shellscript; charset=us-ascii"},
 							},
 						},
-						body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
-						mediaType: MediaTypeXShellscript,
+						body: []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 					},
 				},
 				boundary: "+Go+User+Data+Boundary==",
 			},
 		},
 		{
-			name:      "positive case: include utf-8",
-			multipart: NewMultipart(),
+			name: "positive case: include utf-8",
+			multipart: func() Multipart {
+				m, _ := NewMultipart()
+				return m
+			}(),
 			args: []args{
 				{
-					mediaType: MediaTypeCloudConfig,
-					body:      []byte("#cloud-config\n" + "timezone: Asia/Tokyo"),
+					part: NewPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Asia/Tokyo")),
 				},
 				{
-					mediaType: MediaTypeXShellscript,
-					body:      []byte("#!/bin/bash\n" + "echo 'こんにちは世界'"),
+					part: NewPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'")),
 				},
 			},
 			expected: &multipart{
@@ -347,8 +314,7 @@ func TestMultipart_AddPart(t *testing.T) {
 								"Content-Type":              {"text/cloud-config; charset=us-ascii"},
 							},
 						},
-						body:      []byte("#cloud-config\n" + "timezone: Asia/Tokyo"),
-						mediaType: MediaTypeCloudConfig,
+						body: []byte("#cloud-config\n" + "timezone: Asia/Tokyo"),
 					},
 					&part{
 						header: &header{
@@ -361,7 +327,6 @@ func TestMultipart_AddPart(t *testing.T) {
 							// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
 							"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
 						),
-						mediaType: MediaTypeXShellscript,
 					},
 				},
 				boundary: "+Go+User+Data+Boundary==",
@@ -372,7 +337,7 @@ func TestMultipart_AddPart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for _, args := range tt.args {
-				tt.multipart.AddPart(args.mediaType, args.body)
+				tt.multipart.Append(args.part)
 			}
 			assert.Equal(t, tt.expected, tt.multipart)
 		})
@@ -389,10 +354,10 @@ func TestMultipart_Render(t *testing.T) {
 		{
 			name: "positive case: ascii only",
 			multipart: func() Multipart {
-				m := NewMultipart()
+				m, _ := NewMultipart()
 
-				m.AddPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Europe/London"))
-				m.AddPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'"))
+				m.Append(NewPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Europe/London")))
+				m.Append(NewPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'")))
 
 				return m
 			}(),
@@ -418,10 +383,10 @@ func TestMultipart_Render(t *testing.T) {
 		{
 			name: "positive case: include utf-8",
 			multipart: func() Multipart {
-				m := NewMultipart()
+				m, _ := NewMultipart()
 
-				m.AddPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Asia/Tokyo"))
-				m.AddPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'"))
+				m.Append(NewPart(MediaTypeCloudConfig, []byte("#cloud-config\n"+"timezone: Asia/Tokyo")))
+				m.Append(NewPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'")))
 
 				return m
 			}(),

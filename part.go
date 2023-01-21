@@ -30,30 +30,17 @@ import (
 )
 
 type Part interface {
-	MediaType() MediaType
-	SetBody(mediaType MediaType, body []byte)
 	Renderer
 }
 
 type part struct {
-	header    Header
-	body      []byte
-	mediaType MediaType
+	header Header
+	body   []byte
 }
 
-func NewPart() Part {
-	h := NewHeader()
-	return &part{header: h}
-}
-
-func (p *part) MediaType() MediaType {
-	return p.mediaType
-}
-
-func (p *part) SetBody(mediaType MediaType, body []byte) {
+func NewPart(mediaType MediaType, body []byte) Part {
 	charset := "us-ascii"
 	enc := "7bit"
-
 	if !utf8string.NewString(string(body)).IsASCII() {
 		charset = "utf-8"
 		enc = "base64"
@@ -62,11 +49,11 @@ func (p *part) SetBody(mediaType MediaType, body []byte) {
 
 	typ := mime.FormatMediaType(string(mediaType), map[string]string{"charset": charset})
 
-	p.header.Set("Content-Transfer-Encoding", enc)
-	p.header.Set("Content-Type", typ)
+	h := NewHeader()
+	h.Set("Content-Transfer-Encoding", enc)
+	h.Set("Content-Type", typ)
 
-	p.body = body
-	p.mediaType = mediaType
+	return &part{header: h, body: body}
 }
 
 func (p *part) Render(w io.Writer) error {
