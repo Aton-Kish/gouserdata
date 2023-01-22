@@ -28,11 +28,15 @@ import (
 )
 
 func TestHeader_Render(t *testing.T) {
+	type expected struct {
+		res string
+		err error
+	}
+
 	tests := []struct {
 		name     string
 		header   Header
-		expected string
-		err      error
+		expected expected
 	}{
 		{
 			name: "positive case: normal",
@@ -48,14 +52,17 @@ func TestHeader_Render(t *testing.T) {
 				h.Add("Key3", "Key3-Value2")
 				h.Add("Key3", "Key3-Value3")
 
-				return *h
+				return h
 			}(),
-			expected: "Key1: Key1-Value1\r\n" +
-				"Key2: Key2-Value1\r\n" +
-				"Key2: Key2-Value2\r\n" +
-				"Key3: Key3-Value1\r\n" +
-				"Key3: Key3-Value2\r\n" +
-				"Key3: Key3-Value3\r\n",
+			expected: expected{
+				res: "Key1: Key1-Value1\r\n" +
+					"Key2: Key2-Value1\r\n" +
+					"Key2: Key2-Value2\r\n" +
+					"Key3: Key3-Value1\r\n" +
+					"Key3: Key3-Value2\r\n" +
+					"Key3: Key3-Value3\r\n",
+				err: nil,
+			},
 		},
 		{
 			name: "positive case: sort keys",
@@ -71,14 +78,17 @@ func TestHeader_Render(t *testing.T) {
 
 				h.Set("Key1", "Key1-Value1")
 
-				return *h
+				return h
 			}(),
-			expected: "Key1: Key1-Value1\r\n" +
-				"Key2: Key2-Value1\r\n" +
-				"Key2: Key2-Value2\r\n" +
-				"Key3: Key3-Value1\r\n" +
-				"Key3: Key3-Value2\r\n" +
-				"Key3: Key3-Value3\r\n",
+			expected: expected{
+				res: "Key1: Key1-Value1\r\n" +
+					"Key2: Key2-Value1\r\n" +
+					"Key2: Key2-Value2\r\n" +
+					"Key3: Key3-Value1\r\n" +
+					"Key3: Key3-Value2\r\n" +
+					"Key3: Key3-Value3\r\n",
+				err: nil,
+			},
 		},
 	}
 
@@ -87,12 +97,12 @@ func TestHeader_Render(t *testing.T) {
 			buf := new(bytes.Buffer)
 			err := tt.header.Render(buf)
 
-			if tt.err == nil {
+			if tt.expected.err == nil {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, buf.String())
+				assert.Equal(t, tt.expected.res, buf.String())
 			} else {
 				assert.Error(t, err)
-				assert.Equal(t, tt.err, err)
+				assert.Equal(t, tt.expected.err, err)
 			}
 		})
 	}

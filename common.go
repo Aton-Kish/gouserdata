@@ -21,48 +21,26 @@
 package userdata
 
 import (
-	"fmt"
 	"io"
-	"net/textproto"
-	"sort"
-
-	"golang.org/x/exp/maps"
 )
 
-type Header interface {
-	Add(key, value string)
-	Set(key, value string)
-	Get(key string) string
-	Values(key string) []string
-	Del(key string)
-	Renderer
+type Renderer interface {
+	Render(w io.Writer) error
 }
 
-type header struct {
-	textproto.MIMEHeader
-}
+type MediaType string
 
-func NewHeader() Header {
-	h := make(textproto.MIMEHeader)
-	return &header{h}
-}
-
-func (h *header) Render(w io.Writer) error {
-	keys := maps.Keys(h.MIMEHeader)
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		values := h.MIMEHeader[k]
-		sort.Strings(values)
-
-		for _, v := range values {
-			if _, err := fmt.Fprintf(w, "%s: %s\r\n", k, v); err != nil {
-				err = &Error{Op: "render", Err: err}
-				logger.Println("failed to render header", "func", getFuncName(), "header", h, "error", err)
-				return err
-			}
-		}
-	}
-
-	return nil
-}
+const (
+	MediaTypeCloudBoothook           MediaType = "text/cloud-boothook"
+	MediaTypeCloudConfig             MediaType = "text/cloud-config"
+	MediaTypeCloudConfigArchive      MediaType = "text/cloud-config-archive"
+	MediaTypeCloudConfigJsonp        MediaType = "text/cloud-config-jsonp"
+	MediaTypeJinja2                  MediaType = "text/jinja2"
+	MediaTypePartHandler             MediaType = "text/part-handler"
+	MediaTypeXIncludeOnceUrl         MediaType = "text/x-include-once-url"
+	MediaTypeXIncludeUrl             MediaType = "text/x-include-url"
+	MediaTypeXShellscript            MediaType = "text/x-shellscript"
+	MediaTypeXShellscriptPerBoot     MediaType = "text/x-shellscript-per-boot"
+	MediaTypeXShellscriptPerInstance MediaType = "text/x-shellscript-per-instance"
+	MediaTypeXShellscriptPerOnce     MediaType = "text/x-shellscript-per-once"
+)

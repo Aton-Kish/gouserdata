@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Aton-Kish
+// Copyright (c) 2023 Aton-Kish
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,6 +18,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// The library for cloud-init User Data.
-// This is licensed under the MIT License.
 package userdata
+
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	ErrInvalidBoundary = errors.New("invalid boundary")
+)
+
+type Error struct {
+	Op  string
+	Err error
+}
+
+func (e *Error) Error() string {
+	if e == nil {
+		return "<nil>"
+	}
+
+	var err string
+	if e.Err == nil {
+		err = "<nil>"
+	} else {
+		err = e.Err.Error()
+	}
+
+	return fmt.Sprintf("userdata %s: %s", e.Op, err)
+}
+
+func (e *Error) Unwrap() error {
+	return e.Err
+}

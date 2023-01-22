@@ -29,25 +29,18 @@ import (
 	"golang.org/x/exp/utf8string"
 )
 
-type Part struct {
-	Header    Header
-	Body      []byte
-	mediaType MediaType
+type Part interface {
+	Renderer
 }
 
-func NewPart() *Part {
-	h := NewHeader()
-	return &Part{Header: *h}
+type part struct {
+	header Header
+	body   []byte
 }
 
-func (p *Part) MediaType() MediaType {
-	return p.mediaType
-}
-
-func (p *Part) SetBody(mediaType MediaType, body []byte) {
+func NewPart(mediaType MediaType, body []byte) Part {
 	charset := "us-ascii"
 	enc := "7bit"
-
 	if !utf8string.NewString(string(body)).IsASCII() {
 		charset = "utf-8"
 		enc = "base64"
@@ -56,27 +49,34 @@ func (p *Part) SetBody(mediaType MediaType, body []byte) {
 
 	typ := mime.FormatMediaType(string(mediaType), map[string]string{"charset": charset})
 
-	p.Header.Set("Content-Transfer-Encoding", enc)
-	p.Header.Set("Content-Type", typ)
+	h := NewHeader()
+	h.Set("Content-Transfer-Encoding", enc)
+	h.Set("Content-Type", typ)
 
-	p.Body = body
-	p.mediaType = mediaType
+	return &part{header: h, body: body}
 }
 
-func (p *Part) Render(w io.Writer) error {
-	if err := p.Header.Render(w); err != nil {
+func (p *part) Render(w io.Writer) error {
+	if err := p.header.Render(w); err != nil {
+		logger.Println("failed to render part", "func", getFuncName(), "part", p, "error", err)
 		return err
 	}
 
 	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
+		err = &Error{Op: "render", Err: err}
+		logger.Println("failed to render part", "func", getFuncName(), "part", p, "error", err)
 		return err
 	}
 
-	if _, err := w.Write(p.Body); err != nil {
+	if _, err := w.Write(p.body); err != nil {
+		err = &Error{Op: "render", Err: err}
+		logger.Println("failed to render part", "func", getFuncName(), "part", p, "error", err)
 		return err
 	}
 
 	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
+		err = &Error{Op: "render", Err: err}
+		logger.Println("failed to render part", "func", getFuncName(), "part", p, "error", err)
 		return err
 	}
 

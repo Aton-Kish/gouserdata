@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Aton-Kish
+// Copyright (c) 2023 Aton-Kish
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,48 @@
 
 package userdata
 
-type MediaType string
-
-const (
-	MediaTypeCloudBoothook           MediaType = "text/cloud-boothook"
-	MediaTypeCloudConfig             MediaType = "text/cloud-config"
-	MediaTypeCloudConfigArchive      MediaType = "text/cloud-config-archive"
-	MediaTypeCloudConfigJsonp        MediaType = "text/cloud-config-jsonp"
-	MediaTypeJinja2                  MediaType = "text/jinja2"
-	MediaTypePartHandler             MediaType = "text/part-handler"
-	MediaTypeXIncludeOnceUrl         MediaType = "text/x-include-once-url"
-	MediaTypeXIncludeUrl             MediaType = "text/x-include-url"
-	MediaTypeXShellscript            MediaType = "text/x-shellscript"
-	MediaTypeXShellscriptPerBoot     MediaType = "text/x-shellscript-per-boot"
-	MediaTypeXShellscriptPerInstance MediaType = "text/x-shellscript-per-instance"
-	MediaTypeXShellscriptPerOnce     MediaType = "text/x-shellscript-per-once"
+import (
+	"io"
+	"log"
+	"runtime"
+	"sync"
 )
+
+var (
+	logger Logger = log.New(io.Discard, "", log.LstdFlags)
+	logmu  sync.Mutex
+)
+
+type Logger interface {
+	Print(v ...any)
+	Printf(format string, v ...any)
+	Println(v ...any)
+
+	Fatal(v ...any)
+	Fatalf(format string, v ...any)
+	Fatalln(v ...any)
+
+	Panic(v ...any)
+	Panicf(format string, v ...any)
+	Panicln(v ...any)
+}
+
+func SetLogger(l Logger) {
+	logmu.Lock()
+	defer logmu.Unlock()
+
+	if l == nil {
+		l = log.Default()
+	}
+
+	logger = l
+}
+
+func getFuncName() string {
+	pc, _, _, ok := runtime.Caller(1)
+	if !ok {
+		return "unknown"
+	}
+
+	return runtime.FuncForPC(pc).Name()
+}
