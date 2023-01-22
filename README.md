@@ -35,31 +35,57 @@ import (
 )
 
 func main() {
-	d := userdata.NewMultipart()
+	m, err := userdata.NewMultipart()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	cfg, err := os.ReadFile("cloud-config.yaml")
 	if err != nil {
-			log.Fatal(err)
+		log.Fatal(err)
 	}
-	d.AddPart(userdata.MediaTypeCloudConfig, cfg)
+	m.Append(userdata.NewPart(userdata.MediaTypeCloudConfig, cfg))
 
 	j2, err := os.ReadFile("script.j2")
 	if err != nil {
 		log.Fatal(err)
 	}
-	d.AddPart(userdata.MediaTypeJinja2, j2)
+	m.Append(userdata.NewPart(userdata.MediaTypeJinja2, j2))
 
 	hook, err := os.ReadFile("boothook.sh")
 	if err != nil {
 		log.Fatal(err)
 	}
-	d.AddPart(userdata.MediaTypeCloudBoothook, hook)
+	m.Append(userdata.NewPart(userdata.MediaTypeCloudBoothook, hook))
 
 	buf := new(bytes.Buffer)
-	d.Render(buf)
+	if err := m.Render(buf); err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Println(buf.String())
 }
+```
+
+## Development
+
+### doc
+
+```shell
+: install godoc
+go install golang.org/x/tools/cmd/godoc@latest
+
+: run godoc server
+godoc -http ":6060"
+
+: uninstall godoc
+rm $(go env GOPATH)/bin/godoc
+```
+
+### test
+
+```shell
+go test ./...
 ```
 
 ## License
