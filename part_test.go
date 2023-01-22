@@ -34,10 +34,14 @@ func TestNewPart(t *testing.T) {
 		body      []byte
 	}
 
+	type expected struct {
+		res Part
+	}
+
 	tests := []struct {
 		name     string
 		args     args
-		expected Part
+		expected expected
 	}{
 		{
 			name: "positive case: ascii",
@@ -45,14 +49,16 @@ func TestNewPart(t *testing.T) {
 				mediaType: MediaTypeXShellscript,
 				body:      []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 			},
-			expected: &part{
-				header: &header{
-					textproto.MIMEHeader{
-						"Content-Transfer-Encoding": {"7bit"},
-						"Content-Type":              {"text/x-shellscript; charset=us-ascii"},
+			expected: expected{
+				res: &part{
+					header: &header{
+						textproto.MIMEHeader{
+							"Content-Transfer-Encoding": {"7bit"},
+							"Content-Type":              {"text/x-shellscript; charset=us-ascii"},
+						},
 					},
+					body: []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 				},
-				body: []byte("#!/bin/bash\n" + "echo 'Hello World'"),
 			},
 		},
 		{
@@ -61,17 +67,19 @@ func TestNewPart(t *testing.T) {
 				mediaType: MediaTypeXShellscript,
 				body:      []byte("#!/bin/bash\n" + "echo 'こんにちは世界'"),
 			},
-			expected: &part{
-				header: &header{
-					textproto.MIMEHeader{
-						"Content-Transfer-Encoding": {"base64"},
-						"Content-Type":              {"text/x-shellscript; charset=utf-8"},
+			expected: expected{
+				res: &part{
+					header: &header{
+						textproto.MIMEHeader{
+							"Content-Transfer-Encoding": {"base64"},
+							"Content-Type":              {"text/x-shellscript; charset=utf-8"},
+						},
 					},
+					body: []byte(
+						// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
+						"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
+					),
 				},
-				body: []byte(
-					// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n" + "echo 'こんにちは世界'")),
-					"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==",
-				),
 			},
 		},
 	}
@@ -79,35 +87,45 @@ func TestNewPart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := NewPart(tt.args.mediaType, tt.args.body)
-			assert.Equal(t, tt.expected, actual)
+			assert.Equal(t, tt.expected.res, actual)
 		})
 	}
 }
 
 func TestPart_Render(t *testing.T) {
+	type expected struct {
+		res string
+		err error
+	}
+
 	tests := []struct {
 		name     string
 		part     Part
-		expected string
-		err      error
+		expected expected
 	}{
 		{
 			name: "positive case: ascii",
 			part: NewPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'Hello World'")),
-			expected: "Content-Transfer-Encoding: 7bit\r\n" +
-				"Content-Type: text/x-shellscript; charset=us-ascii\r\n" +
-				"\r\n" +
-				"#!/bin/bash\n" +
-				"echo 'Hello World'\r\n",
+			expected: expected{
+				res: "Content-Transfer-Encoding: 7bit\r\n" +
+					"Content-Type: text/x-shellscript; charset=us-ascii\r\n" +
+					"\r\n" +
+					"#!/bin/bash\n" +
+					"echo 'Hello World'\r\n",
+				err: nil,
+			},
 		},
 		{
 			name: "positive case: utf-8",
 			part: NewPart(MediaTypeXShellscript, []byte("#!/bin/bash\n"+"echo 'こんにちは世界'")),
-			expected: "Content-Transfer-Encoding: base64\r\n" +
-				"Content-Type: text/x-shellscript; charset=utf-8\r\n" +
-				"\r\n" +
-				// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n"+"echo 'こんにちは世界'")) +
-				"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==\r\n",
+			expected: expected{
+				res: "Content-Transfer-Encoding: base64\r\n" +
+					"Content-Type: text/x-shellscript; charset=utf-8\r\n" +
+					"\r\n" +
+					// base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\n"+"echo 'こんにちは世界'")) +
+					"IyEvYmluL2Jhc2gKZWNobyAn44GT44KT44Gr44Gh44Gv5LiW55WMJw==\r\n",
+				err: nil,
+			},
 		},
 	}
 
@@ -116,12 +134,12 @@ func TestPart_Render(t *testing.T) {
 			buf := new(bytes.Buffer)
 			err := tt.part.Render(buf)
 
-			if tt.err == nil {
+			if tt.expected.err == nil {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expected, buf.String())
+				assert.Equal(t, tt.expected.res, buf.String())
 			} else {
 				assert.Error(t, err)
-				assert.Equal(t, tt.err, err)
+				assert.Equal(t, tt.expected.err, err)
 			}
 		})
 	}
