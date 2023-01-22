@@ -178,7 +178,7 @@ func TestNewMultipartWithBoundary(t *testing.T) {
 					parts:    []Part{},
 					boundary: "+Go+User+Data+Boundary==",
 				},
-				err: &Error{Op: "new", Err: ErrInvalidBoundary},
+				err: &Error{Op: "initialize", Err: ErrInvalidBoundary},
 			},
 		},
 		{
@@ -197,7 +197,7 @@ func TestNewMultipartWithBoundary(t *testing.T) {
 					parts:    []Part{},
 					boundary: "+Go+User+Data+Boundary==",
 				},
-				err: &Error{Op: "new", Err: ErrInvalidBoundary},
+				err: &Error{Op: "initialize", Err: ErrInvalidBoundary},
 			},
 		},
 		{
@@ -216,7 +216,7 @@ func TestNewMultipartWithBoundary(t *testing.T) {
 					parts:    []Part{},
 					boundary: "+Go+User+Data+Boundary==",
 				},
-				err: &Error{Op: "new", Err: ErrInvalidBoundary},
+				err: &Error{Op: "initialize", Err: ErrInvalidBoundary},
 			},
 		},
 		{
@@ -235,7 +235,7 @@ func TestNewMultipartWithBoundary(t *testing.T) {
 					parts:    []Part{},
 					boundary: "+Go+User+Data+Boundary==",
 				},
-				err: &Error{Op: "new", Err: ErrInvalidBoundary},
+				err: &Error{Op: "initialize", Err: ErrInvalidBoundary},
 			},
 		},
 	}

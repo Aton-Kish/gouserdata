@@ -53,7 +53,8 @@ func NewMultipart() (Multipart, error) {
 
 func NewMultipartWithBoundary(boundary string) (Multipart, error) {
 	if !boundaryRe.MatchString(boundary) {
-		err := &Error{Op: "new", Err: ErrInvalidBoundary}
+		err := &Error{Op: "initialize", Err: ErrInvalidBoundary}
+		logger.Println("failed to initialize multipart", "func", getFuncName(), "error", err)
 		return nil, err
 	}
 
@@ -76,32 +77,38 @@ func (m *multipart) Append(part Part) {
 
 func (m *multipart) Render(w io.Writer) error {
 	if err := m.header.Render(w); err != nil {
+		logger.Println("failed to render multipart", "func", getFuncName(), "multipart", m, "error", err)
 		return err
 	}
 
 	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
 		err = &Error{Op: "render", Err: err}
+		logger.Println("failed to render multipart", "func", getFuncName(), "multipart", m, "error", err)
 		return err
 	}
 
 	for _, part := range m.parts {
 		if _, err := fmt.Fprintf(w, "--%s\r\n", m.boundary); err != nil {
 			err = &Error{Op: "render", Err: err}
+			logger.Println("failed to render multipart", "func", getFuncName(), "multipart", m, "error", err)
 			return err
 		}
 
 		if err := part.Render(w); err != nil {
+			logger.Println("failed to render multipart", "func", getFuncName(), "multipart", m, "error", err)
 			return err
 		}
 
 		if _, err := fmt.Fprint(w, "\r\n"); err != nil {
 			err = &Error{Op: "render", Err: err}
+			logger.Println("failed to render multipart", "func", getFuncName(), "multipart", m, "error", err)
 			return err
 		}
 	}
 
 	if _, err := fmt.Fprintf(w, "--%s--\r\n", m.boundary); err != nil {
 		err = &Error{Op: "render", Err: err}
+		logger.Println("failed to render multipart", "func", getFuncName(), "multipart", m, "error", err)
 		return err
 	}
 

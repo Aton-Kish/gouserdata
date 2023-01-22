@@ -58,21 +58,25 @@ func NewPart(mediaType MediaType, body []byte) Part {
 
 func (p *part) Render(w io.Writer) error {
 	if err := p.header.Render(w); err != nil {
+		logger.Println("failed to render part", "func", getFuncName(), "part", p, "error", err)
 		return err
 	}
 
 	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
 		err = &Error{Op: "render", Err: err}
+		logger.Println("failed to render part", "func", getFuncName(), "part", p, "error", err)
 		return err
 	}
 
 	if _, err := w.Write(p.body); err != nil {
 		err = &Error{Op: "render", Err: err}
+		logger.Println("failed to render part", "func", getFuncName(), "part", p, "error", err)
 		return err
 	}
 
 	if _, err := fmt.Fprint(w, "\r\n"); err != nil {
 		err = &Error{Op: "render", Err: err}
+		logger.Println("failed to render part", "func", getFuncName(), "part", p, "error", err)
 		return err
 	}
 

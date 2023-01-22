@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Aton-Kish
+// Copyright (c) 2023 Aton-Kish
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,48 +21,47 @@
 package userdata
 
 import (
-	"fmt"
 	"io"
-	"net/textproto"
-	"sort"
-
-	"golang.org/x/exp/maps"
+	"log"
+	"runtime"
+	"sync"
 )
 
-type Header interface {
-	Add(key, value string)
-	Set(key, value string)
-	Get(key string) string
-	Values(key string) []string
-	Del(key string)
-	Renderer
+var (
+	logger Logger = log.New(io.Discard, "", log.LstdFlags)
+	logmu  sync.Mutex
+)
+
+type Logger interface {
+	Print(v ...any)
+	Printf(format string, v ...any)
+	Println(v ...any)
+
+	Fatal(v ...any)
+	Fatalf(format string, v ...any)
+	Fatalln(v ...any)
+
+	Panic(v ...any)
+	Panicf(format string, v ...any)
+	Panicln(v ...any)
 }
 
-type header struct {
-	textproto.MIMEHeader
-}
+func SetLogger(l Logger) {
+	logmu.Lock()
+	defer logmu.Unlock()
 
-func NewHeader() Header {
-	h := make(textproto.MIMEHeader)
-	return &header{h}
-}
-
-func (h *header) Render(w io.Writer) error {
-	keys := maps.Keys(h.MIMEHeader)
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		values := h.MIMEHeader[k]
-		sort.Strings(values)
-
-		for _, v := range values {
-			if _, err := fmt.Fprintf(w, "%s: %s\r\n", k, v); err != nil {
-				err = &Error{Op: "render", Err: err}
-				logger.Println("failed to render header", "func", getFuncName(), "header", h, "error", err)
-				return err
-			}
-		}
+	if l == nil {
+		l = log.Default()
 	}
 
-	return nil
+	logger = l
+}
+
+func getFuncName() string {
+	pc, _, _, ok := runtime.Caller(1)
+	if !ok {
+		return "unknown"
+	}
+
+	return runtime.FuncForPC(pc).Name()
 }
